@@ -90,9 +90,16 @@ class AuthService {
 
   Future<AppResult<void>> signInWithGoogle() async {
     try {
+      // On web, redirect back to whatever URL the app is currently served from
+      // (works for both localhost dev and GitHub Pages production).
+      // On mobile, use the custom deep-link scheme registered in the OS.
+      final redirectTo = kIsWeb
+          ? Uri.base.toString()
+          : 'io.supabase.alltogether://login-callback';
+
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? null : 'io.supabase.alltogether://login-callback',
+        redirectTo: redirectTo,
       );
       // Session arrives asynchronously via authStateProvider stream.
       return const AppSuccess(null);
