@@ -1,0 +1,55 @@
+name: all_together
+description: Food habit tracking, AI meal planning, receipt scanning, and sustainability analytics.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Backend — auth, database, storage
+  supabase_flutter: ^2.6.0
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Local key-value cache
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Network connectivity check
+  connectivity_plus: ^6.1.1
+
+  # SHA-256 for preference fingerprint
+  crypto: ^3.0.6
+
+  # Secure storage for sensitive values
+  flutter_secure_storage: ^9.2.4
+
+  # Date formatting utilities
+  intl: ^0.19.0
+
+  # HTTP client for Claude API calls
+  http: ^1.2.2
+
+  # On-device OCR for receipt scanning
+  google_mlkit_text_recognition: ^0.13.0
+
+  # Camera / gallery image picker
+  image_picker: ^1.1.2
+
+  # UI — shadcn_flutter (integrate in polish session)
+  # shadcn_flutter: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  mockito: ^5.4.5
+  build_runner: ^2.4.14
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────
+# Secrets — never commit
+# ─────────────────────────────────────────────────────────────
+.env
+*.env
+!.env.example
+
+# ─────────────────────────────────────────────────────────────
+# Flutter / Dart
+# ─────────────────────────────────────────────────────────────
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/build/
+app/pubspec.lock
+
+# Generated files
+app/lib/**/*.g.dart
+app/lib/**/*.freezed.dart
+
+# ─────────────────────────────────────────────────────────────
+# Android
+# ─────────────────────────────────────────────────────────────
+app/android/.gradle/
+app/android/local.properties
+app/android/key.properties
+app/android/app/google-services.json
+*.keystore
+*.jks
+
+# ─────────────────────────────────────────────────────────────
+# iOS
+# ─────────────────────────────────────────────────────────────
+app/ios/Pods/
+app/ios/.symlinks/
+app/ios/Flutter/Flutter.framework
+app/ios/Flutter/Flutter.podspec
+app/ios/GoogleService-Info.plist
+
+# ─────────────────────────────────────────────────────────────
+# macOS / IDE
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/settings.json
+*.swp
