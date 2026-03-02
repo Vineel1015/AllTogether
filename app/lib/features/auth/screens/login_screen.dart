@@ -6,6 +6,7 @@ import '../../../core/utils/string_utils.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/auth_form_widget.dart';
+import '../widgets/google_sign_in_button.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -15,12 +16,36 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'or',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey,
+                ),
+          ),
+        ),
+        const Expanded(child: Divider()),
+      ],
+    );
+  }
+}
+
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   String? _errorMessage;
 
   @override
@@ -28,6 +53,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await ref.read(authServiceProvider).signInWithGoogle();
+
+    if (!mounted) return;
+
+    setState(() => _isGoogleLoading = false);
+
+    if (result case AppFailure(:final code)) {
+      setState(() => _errorMessage = toUserMessage(code));
+    }
+    // On success, AuthWrapper reacts to the auth state change automatically.
   }
 
   Future<void> _signIn() async {
@@ -116,12 +159,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   _isLoading
                       ? const LoadingIndicator()
                       : FilledButton(
-                          onPressed: _signIn,
+                          onPressed: _isGoogleLoading ? null : _signIn,
                           child: const Padding(
                             padding: EdgeInsets.symmetric(vertical: 14),
                             child: Text('Sign In'),
                           ),
                         ),
+                  const SizedBox(height: 16),
+                  const _OrDivider(),
+                  const SizedBox(height: 16),
+                  GoogleSignInButton(
+                    onPressed: _isLoading ? null : _signInWithGoogle,
+                    isLoading: _isGoogleLoading,
+                  ),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => Navigator.of(context).push(

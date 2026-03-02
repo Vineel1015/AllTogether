@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/models/app_result.dart';
@@ -77,6 +78,23 @@ class AuthService {
   Future<AppResult<void>> signOut() async {
     try {
       await _supabase.auth.signOut();
+      return const AppSuccess(null);
+    } on AuthException catch (e) {
+      return AppFailure(e.message, code: 'auth_error');
+    } catch (e) {
+      return AppFailure('Unexpected error: $e');
+    }
+  }
+
+  // ── Google OAuth ──────────────────────────────────────────────────────────
+
+  Future<AppResult<void>> signInWithGoogle() async {
+    try {
+      await _supabase.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'io.supabase.alltogether://login-callback',
+      );
+      // Session arrives asynchronously via authStateProvider stream.
       return const AppSuccess(null);
     } on AuthException catch (e) {
       return AppFailure(e.message, code: 'auth_error');

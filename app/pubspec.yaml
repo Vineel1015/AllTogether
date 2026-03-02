@@ -41,6 +41,12 @@ dependencies:
   # Camera / gallery image picker
   image_picker: ^1.1.2
 
+  # Charts for analytics page
+  fl_chart: ^0.69.0
+
+  # GPS + browser Geolocation API for nearby store finder
+  geolocator: ^13.0.2
+
   # UI — shadcn_flutter (integrate in polish session)
   # shadcn_flutter: ^0.1.0
 
@@ -53,3 +59,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  fonts:
+    - family: AlteHaasGrotesk
+      fonts:
+        - asset: assets/fonts/AlteHaasGroteskRegular.ttf
+        - asset: assets/fonts/AlteHaasGroteskBold.ttf
+          weight: 700

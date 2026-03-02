@@ -135,6 +135,30 @@ class ReceiptService {
     }
   }
 
+  /// Deletes a receipt (and its items via ON DELETE CASCADE) from Supabase.
+  Future<AppResult<void>> deleteReceipt(String id) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) {
+      return const AppFailure(
+        'Session expired. Please sign in again.',
+        code: '401',
+      );
+    }
+
+    try {
+      await _supabase
+          .from('receipts')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', userId);
+      return const AppSuccess(null);
+    } on PostgrestException catch (e) {
+      return AppFailure(e.message, code: e.code, isRetryable: true);
+    } catch (e) {
+      return AppFailure('Failed to delete receipt: $e');
+    }
+  }
+
   /// Fetches all receipts for the current user, ordered newest-first.
   Future<AppResult<List<Receipt>>> getReceipts() async {
     final userId = _supabase.auth.currentUser?.id;

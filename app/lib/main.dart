@@ -49,6 +49,7 @@ class AllTogetherApp extends StatelessWidget {
       theme: ThemeData(
         colorSchemeSeed: Colors.green,
         useMaterial3: true,
+        fontFamily: 'AlteHaasGrotesk',
       ),
       home: const AuthWrapper(),
     );

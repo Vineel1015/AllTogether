@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../features/analytics/screens/analytics_screen.dart';
 import '../features/finder/screens/finder_screen.dart';
 import '../features/history/screens/history_screen.dart';
 import 'bottom_nav_widget.dart';
@@ -35,21 +36,8 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     return switch (_currentTab) {
       AppTab.finder => const FinderScreen(),
       AppTab.history => const HistoryScreen(),
-      AppTab.analytics => const _AnalyticsPlaceholder(),
+      AppTab.analytics => const AnalyticsScreen(),
     };
   }
 }
 
-// ── Placeholder screens (replaced in later sessions) ──────────────────────────
-
-class _AnalyticsPlaceholder extends StatelessWidget {
-  const _AnalyticsPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
-      body: const Center(child: Text('Analytics — coming in Session 4')),
-    );
-  }
-}

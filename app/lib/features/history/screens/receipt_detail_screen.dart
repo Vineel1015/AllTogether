@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../models/food_item_model.dart';
+import '../models/receipt_item_model.dart';
 import '../models/receipt_model.dart';
+import '../providers/receipt_provider.dart';
 import '../widgets/nutrition_row_widget.dart';
 
 /// Shows all line items for a [Receipt], with nutrition data where available.
-class ReceiptDetailScreen extends StatelessWidget {
+class ReceiptDetailScreen extends ConsumerWidget {
   final Receipt receipt;
 
   const ReceiptDetailScreen({super.key, required this.receipt});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final storeName = receipt.storeName?.isNotEmpty == true
         ? receipt.storeName!
         : 'Unknown store';
@@ -46,20 +49,14 @@ class ReceiptDetailScreen extends StatelessWidget {
           // ── Item list ──────────────────────────────────────────────────
           Expanded(
             child: receipt.items.isEmpty
-                ? const Center(child: Text('No items parsed from this receipt.'))
+                ? const Center(
+                    child: Text('No items parsed from this receipt.'))
                 : ListView.separated(
                     itemCount: receipt.items.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final item = receipt.items[index];
-                      return _ItemTile(
-                        name: item.name,
-                        price: item.price,
-                        // FoodItem lookup in a real flow would come from a
-                        // provider; for the detail view we use the matched ID
-                        // as a placeholder until analytics wires this up.
-                        foodItem: null,
-                      );
+                      return _ItemTile(item: item, ref: ref);
                     },
                   ),
           ),
@@ -70,18 +67,15 @@ class ReceiptDetailScreen extends StatelessWidget {
 }
 
 class _ItemTile extends StatelessWidget {
-  final String name;
-  final double? price;
-  final FoodItem? foodItem;
+  final ReceiptItem item;
+  final WidgetRef ref;
 
-  const _ItemTile({
-    required this.name,
-    this.price,
-    this.foodItem,
-  });
+  const _ItemTile({required this.item, required this.ref});
 
   @override
   Widget build(BuildContext context) {
+    final foodAsync = ref.watch(foodItemByNameProvider(item.name));
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -91,21 +85,27 @@ class _ItemTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  name,
+                  item.name,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
-              if (price != null)
+              if (item.price != null)
                 Text(
-                  '\$${price!.toStringAsFixed(2)}',
+                  '\$${item.price!.toStringAsFixed(2)}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
             ],
           ),
-          if (foodItem != null) ...[
-            const SizedBox(height: 4),
-            NutritionRowWidget(item: foodItem!),
-          ],
+          foodAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (FoodItem? foodItem) => foodItem != null
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: NutritionRowWidget(item: foodItem),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
