@@ -22,21 +22,8 @@ class MealCardDeck extends StatefulWidget {
 class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMixin {
   final List<Meal> _selectedMeals = [];
   final Set<String> _dealtMealIds = {};
-  String? _hoveredMealId;
-  bool _isShuffling = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _triggerShuffle();
-  }
-
-  void _triggerShuffle() {
-    setState(() => _isShuffling = true);
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) setState(() => _isShuffling = false);
-    });
-  }
+  final PageController _pageController = PageController(viewportFraction: 0.7);
+  int _currentPage = 0;
 
   void _selectMeal(Meal meal) {
     if (_selectedMeals.length < widget.maxSelections && !_dealtMealIds.contains(meal.id)) {
@@ -62,7 +49,7 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
       children: [
         // Hand / Selection Area
         Container(
-          height: 120,
+          height: 140,
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -71,173 +58,189 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
                 meal: meal, 
                 onTap: () => _unselectMeal(meal)
               )),
-              // Placeholders
               ...List.generate(widget.maxSelections - _selectedMeals.length, (i) => _EmptySlot()),
             ],
           ),
         ),
         
-        if (_selectedMeals.length == widget.maxSelections)
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AllTogetherColors.mascotBlue, foregroundColor: Colors.white),
-              onPressed: () => widget.onSelectionComplete(_selectedMeals),
-              child: const Text('Confirm Selections', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ),
+        Text(
+          'Pick ${widget.maxSelections - _selectedMeals.length} more cards',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AllTogetherColors.mascotBlue),
+        ),
 
         const Spacer(),
         
-        // Magician Deck Area
+        // Large Horizontal Deck
         SizedBox(
-          height: 450,
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              if (!_isShuffling)
-                ...List.generate(availableMeals.length, (index) {
-                  final meal = availableMeals[index];
-                  final total = availableMeals.length;
-                  // Pivot from the bottom center, fan out in an arc
-                  final double arcSpread = pi / 3; // 60 degrees total spread
-                  final double startAngle = -arcSpread / 2;
-                  final double angle = startAngle + (index / (total - 1)) * arcSpread;
-                  final radius = 400.0;
-                  
-                  return _DraggableCard(
+          height: 550, // Much larger area
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: availableMeals.length,
+            onPageChanged: (i) => setState(() => _currentPage = i),
+            itemBuilder: (context, index) {
+              final meal = availableMeals[index];
+              final double scale = max(0.8, (1 - (_currentPage - index).abs() * 0.3));
+              
+              return Center(
+                child: Transform.scale(
+                  scale: scale,
+                  child: _LargeFlipCard(
                     meal: meal,
-                    angle: angle,
-                    radius: radius,
-                    isHovered: _hoveredMealId == meal.id,
-                    onHover: (hovering) {
-                      setState(() => _hoveredMealId = hovering ? meal.id : null);
-                    },
                     onSelected: () => _selectMeal(meal),
-                  );
-                }),
-              if (_isShuffling)
-                const Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CircularProgressIndicator(color: AllTogetherColors.mascotOrange),
-                      SizedBox(height: 16),
-                      Text('Shuffling Deck...', style: TextStyle(color: AllTogetherColors.mascotOrange, fontWeight: FontWeight.bold)),
-                    ],
                   ),
                 ),
-            ],
+              );
+            },
           ),
         ),
-        const SizedBox(height: 20),
+        
+        if (_selectedMeals.length == widget.maxSelections)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 40.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AllTogetherColors.mascotBlue, 
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              ),
+              onPressed: () => widget.onSelectionComplete(_selectedMeals),
+              child: const Text('READY FOR THE HAUL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ),
+          ),
       ],
     );
   }
 }
 
-class _DraggableCard extends StatelessWidget {
+class _LargeFlipCard extends StatefulWidget {
   final Meal meal;
-  final double angle;
-  final double radius;
-  final bool isHovered;
-  final Function(bool) onHover;
   final VoidCallback onSelected;
 
-  const _DraggableCard({
-    required this.meal,
-    required this.angle,
-    required this.radius,
-    required this.isHovered,
-    required this.onHover,
-    required this.onSelected,
-  });
+  const _LargeFlipCard({required this.meal, required this.onSelected});
+
+  @override
+  State<_LargeFlipCard> createState() => _LargeFlipCardState();
+}
+
+class _LargeFlipCardState extends State<_LargeFlipCard> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _isFaceUp = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _animation = Tween<double>(begin: 0, end: pi).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleFlip() {
+    if (_isFaceUp) {
+      _controller.reverse();
+    } else {
+      _controller.forward();
+    }
+    setState(() => _isFaceUp = !_isFaceUp);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Pivot from bottom center
-    final double xOffset = sin(angle) * radius;
-    final double yOffset = -cos(angle) * radius + radius;
-
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
-      bottom: isHovered ? yOffset + 60 : yOffset,
-      left: (MediaQuery.of(context).size.width / 2) + xOffset - 60,
-      child: Transform.rotate(
-        angle: angle,
-        child: MouseRegion(
-          onEnter: (_) => onHover(true),
-          onExit: (_) => onHover(false),
-          child: Draggable<Meal>(
-            data: meal,
-            axis: Axis.vertical,
-            feedback: Material(
-              color: Colors.transparent,
-              child: _CardBack(meal: meal, isFaceUp: true),
-            ),
-            childWhenDragging: const SizedBox.shrink(),
-            onDragEnd: (details) {
-              // Select if dragged up past a threshold
-              if (details.offset.dy < MediaQuery.of(context).size.height * 0.5) {
-                onSelected();
-              }
-            },
-            child: _CardBack(meal: meal, isFaceUp: false),
-          ),
+    return GestureDetector(
+      onTap: _toggleFlip,
+      child: Draggable<Meal>(
+        data: widget.meal,
+        axis: Axis.vertical,
+        feedback: Material(
+          color: Colors.transparent,
+          child: _CardSide(meal: widget.meal, isFaceUp: true, isLarge: true),
+        ),
+        onDragEnd: (details) {
+          if (details.offset.dy < 200) {
+            widget.onSelected();
+          }
+        },
+        child: AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            final double value = _animation.value;
+            final bool isBack = value < (pi / 2);
+            
+            return Transform(
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.001)
+                ..rotateY(value),
+              alignment: Alignment.center,
+              child: isBack
+                ? _CardSide(meal: widget.meal, isFaceUp: false, isLarge: true)
+                : Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.identity()..rotateY(pi),
+                    child: _CardSide(meal: widget.meal, isFaceUp: true, isLarge: true),
+                  ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _CardBack extends StatelessWidget {
+class _CardSide extends StatelessWidget {
   final Meal meal;
   final bool isFaceUp;
-  const _CardBack({required this.meal, this.isFaceUp = false});
+  final bool isLarge;
+  const _CardSide({required this.meal, required this.isFaceUp, this.isLarge = false});
 
   @override
   Widget build(BuildContext context) {
     final color = AllTogetherColors.getMealColor(meal.id);
-    
+    final width = isLarge ? 280.0 : 70.0;
+    final height = isLarge ? 420.0 : 100.0;
+
     return Container(
-      width: 120,
-      height: 180,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         color: isFaceUp ? Colors.white : color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white, width: 4),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white, width: 6),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
+          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: isFaceUp 
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.restaurant_menu, color: color, size: 40),
-              const SizedBox(height: 12),
+              Icon(Icons.restaurant_menu, color: color, size: isLarge ? 80 : 20),
+              const SizedBox(height: 20),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Text(
                   meal.name,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: color.darken(),
+                    fontSize: isLarge ? 24 : 8,
+                    color: color.darken(0.3),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                '${meal.calories} kcal',
-                style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
-              ),
+              if (isLarge) ...[
+                const SizedBox(height: 12),
+                Text('${meal.calories} kcal', style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
+                const Text('SWIPE UP TO DEAL', style: TextStyle(color: Colors.grey, fontSize: 12, letterSpacing: 2)),
+              ],
             ],
           )
         : Center(
@@ -245,22 +248,13 @@ class _CardBack extends StatelessWidget {
               'AT',
               style: TextStyle(
                 color: Colors.white.withOpacity(0.4),
-                fontSize: 40,
+                fontSize: isLarge ? 100 : 32,
                 fontWeight: FontWeight.w900,
-                letterSpacing: 2,
+                letterSpacing: 4,
               ),
             ),
           ),
     );
-  }
-}
-
-extension ColorExtension on Color {
-  Color darken([double amount = .1]) {
-    assert(amount >= 0 && amount <= 1);
-    final hsl = HSLColor.fromColor(this);
-    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
-    return hslDark.toColor();
   }
 }
 
@@ -310,15 +304,24 @@ class _EmptySlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 60,
-      height: 90,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+      width: 70,
+      height: 100,
+      margin: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 2)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 3)),
       ),
-      child: const Center(child: Icon(Icons.add, color: Colors.grey, size: 20)),
+      child: const Center(child: Icon(Icons.add, color: Colors.grey, size: 24)),
     );
+  }
+}
+
+extension ColorExtension on Color {
+  Color darken([double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(this);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
   }
 }
