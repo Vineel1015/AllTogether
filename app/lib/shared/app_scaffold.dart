@@ -8,6 +8,7 @@ import '../features/discovery/screens/discovery_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/finder/providers/finder_tab_provider.dart';
 import '../features/video_recipe/screens/video_recipe_screen.dart';
+import '../features/history/screens/history_screen.dart';
 
 /// Tab indices used by [AppScaffold].
 enum AppTab { discovery, social, videoRecipe, finder, history, analytics, settings }

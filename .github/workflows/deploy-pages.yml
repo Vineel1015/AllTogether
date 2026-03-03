@@ -39,10 +39,7 @@ jobs:
             --release \
             --base-href /AllTogether/ \
             --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
-            --dart-define=CLAUDE_API_KEY=${{ secrets.CLAUDE_API_KEY }} \
-            --dart-define=GOOGLE_PLACES_API_KEY=${{ secrets.GOOGLE_PLACES_API_KEY }} \
-            --dart-define=CLIMATIQ_API_KEY=${{ secrets.CLIMATIQ_API_KEY }}
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
