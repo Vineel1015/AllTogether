@@ -12,7 +12,7 @@ import '../features/history/screens/history_screen.dart';
 import '../features/recipe_scraper/screens/recipe_scraper_screen.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { discovery, social, recipeScraper, finder, history, analytics, settings }
+enum AppTab { potluck, whatsCookin, kaleculations, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -26,7 +26,7 @@ class AppScaffold extends ConsumerStatefulWidget {
 }
 
 class _AppScaffoldState extends ConsumerState<AppScaffold> {
-  AppTab _currentTab = AppTab.discovery;
+  AppTab _currentTab = AppTab.potluck;
   double _sidebarWidth = 250.0;
   bool _isSidebarVisible = true;
 
@@ -100,22 +100,23 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   Widget _buildNavButton(AppTab tab) {
     final isSelected = _currentTab == tab;
     final icon = switch (tab) {
-      AppTab.discovery => Icons.explore_outlined,
-      AppTab.social => Icons.people_outline,
-      AppTab.recipeScraper => Icons.language_outlined,
-      AppTab.finder => Icons.restaurant_menu_outlined,
-      AppTab.history => Icons.receipt_long_outlined,
-      AppTab.analytics => Icons.bar_chart_outlined,
+      AppTab.potluck => Icons.groups_outlined,
+      AppTab.whatsCookin => Icons.restaurant_menu_outlined,
+      AppTab.kaleculations => Icons.analytics_outlined,
       AppTab.settings => Icons.settings_outlined,
     };
     final selectedIcon = switch (tab) {
-      AppTab.discovery => Icons.explore,
-      AppTab.social => Icons.people,
-      AppTab.recipeScraper => Icons.language,
-      AppTab.finder => Icons.restaurant_menu,
-      AppTab.history => Icons.receipt_long,
-      AppTab.analytics => Icons.bar_chart,
+      AppTab.potluck => Icons.groups,
+      AppTab.whatsCookin => Icons.restaurant_menu,
+      AppTab.kaleculations => Icons.analytics,
       AppTab.settings => Icons.settings,
+    };
+
+    final label = switch (tab) {
+      AppTab.potluck => 'Potluck',
+      AppTab.whatsCookin => "What's Cookin?",
+      AppTab.kaleculations => 'Kale-culations',
+      AppTab.settings => 'Settings',
     };
 
     return Padding(
@@ -128,7 +129,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
         ),
         onPressed: () => setState(() => _currentTab = tab),
         label: Text(
-          tab.name[0].toUpperCase() + tab.name.substring(1),
+          label,
           style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
         ),
       ),
@@ -163,36 +164,30 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
               'Shopping List',
               onTap: () {
                 ref.read(finderTabProvider.notifier).state = 1;
-                setState(() => _currentTab = AppTab.finder);
+                setState(() => _currentTab = AppTab.whatsCookin);
               },
-              isSelected: _currentTab == AppTab.finder && currentFinderTab == 1,
+              isSelected: _currentTab == AppTab.whatsCookin && currentFinderTab == 1,
             ),
             _buildSidebarItem(
               Icons.restaurant_outlined,
               'My Meals',
               onTap: () {
                 ref.read(finderTabProvider.notifier).state = 0;
-                setState(() => _currentTab = AppTab.finder);
+                setState(() => _currentTab = AppTab.whatsCookin);
               },
-              isSelected: _currentTab == AppTab.finder && currentFinderTab == 0,
+              isSelected: _currentTab == AppTab.whatsCookin && currentFinderTab == 0,
             ),
             _buildSidebarItem(
               Icons.eco_outlined,
               'Impact Stats',
-              onTap: () => setState(() => _currentTab = AppTab.analytics),
-              isSelected: _currentTab == AppTab.analytics,
-            ),
-            _buildSidebarItem(
-              Icons.language_outlined,
-              'Scrape Recipe',
-              onTap: () => setState(() => _currentTab = AppTab.recipeScraper),
-              isSelected: _currentTab == AppTab.recipeScraper,
+              onTap: () => setState(() => _currentTab = AppTab.kaleculations),
+              isSelected: _currentTab == AppTab.kaleculations,
             ),
             _buildSidebarItem(
               Icons.people_outline,
               'Following',
-              onTap: () => setState(() => _currentTab = AppTab.social),
-              isSelected: _currentTab == AppTab.social,
+              onTap: () => setState(() => _currentTab = AppTab.potluck),
+              isSelected: _currentTab == AppTab.potluck,
             ),
             const Spacer(),
             _buildSidebarItem(
@@ -245,14 +240,104 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   Widget _buildBody() {
     return switch (_currentTab) {
-      AppTab.discovery => const DiscoveryScreen(),
-      AppTab.social => const SocialFeedScreen(),
-      AppTab.recipeScraper => const RecipeScraperScreen(),
-      AppTab.finder => const FinderScreen(),
-      AppTab.history => const HistoryScreen(),
-      AppTab.analytics => const AnalyticsScreen(),
+      AppTab.potluck => const PotluckScreen(),
+      AppTab.whatsCookin => const WhatsCookinScreen(),
+      AppTab.kaleculations => const KaleculationsScreen(),
       AppTab.settings => const SettingsScreen(),
     };
+  }
+}
+
+class PotluckScreen extends StatelessWidget {
+  const PotluckScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            indicatorColor: Colors.green,
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(text: 'Discovery'),
+              Tab(text: 'Social Feed'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                const DiscoveryScreen(),
+                const SocialFeedScreen(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class WhatsCookinScreen extends StatelessWidget {
+  const WhatsCookinScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            indicatorColor: Colors.green,
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(text: 'Meal Planner'),
+              Tab(text: 'Web Importer'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                const FinderScreen(),
+                const RecipeScraperScreen(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class KaleculationsScreen extends StatelessWidget {
+  const KaleculationsScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: [
+          const TabBar(
+            indicatorColor: Colors.green,
+            labelColor: Colors.black,
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(text: 'Sustainability & Analytics'),
+              Tab(text: 'Receipt History'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                const AnalyticsScreen(),
+                const HistoryScreen(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
