@@ -137,8 +137,22 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
                 recipe.title,
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              if (recipe.sourceName != null)
-                Text('Source: ${recipe.sourceName}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  if (recipe.sourceName != null) ...[
+                    Text('Source: ${recipe.sourceName}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(width: 12),
+                  ],
+                  Icon(Icons.timer_outlined, size: 14, color: Colors.blueGrey[600]),
+                  const SizedBox(width: 4),
+                  Text('${recipe.prepMinutes}m', style: TextStyle(color: Colors.blueGrey[600], fontSize: 12, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 12),
+                  Icon(Icons.local_fire_department_outlined, size: 14, color: Colors.orange[700]),
+                  const SizedBox(width: 4),
+                  Text('${recipe.calories} kcal', style: TextStyle(color: Colors.orange[700], fontSize: 12, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ],
           ),
         ),

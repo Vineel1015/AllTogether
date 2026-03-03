@@ -7,6 +7,8 @@ class ScrapedRecipe {
   final List<String> ingredients;
   final List<String> steps;
   final String? sourceName;
+  final int prepMinutes;
+  final int calories;
   final DateTime createdAt;
 
   const ScrapedRecipe({
@@ -16,6 +18,8 @@ class ScrapedRecipe {
     this.ingredients = const [],
     this.steps = const [],
     this.sourceName,
+    this.prepMinutes = 0,
+    this.calories = 0,
     required this.createdAt,
   });
 
@@ -25,8 +29,8 @@ class ScrapedRecipe {
       userId: userId,
       name: title,
       ingredients: ingredients,
-      calories: 0,
-      prepMinutes: 0,
+      calories: calories,
+      prepMinutes: prepMinutes,
       isPreset: false,
     );
   }
@@ -34,11 +38,13 @@ class ScrapedRecipe {
   factory ScrapedRecipe.fromJson(Map<String, dynamic> json) {
     return ScrapedRecipe(
       id: json['id'] as String?,
-      url: json['url'] as String,
-      title: json['title'] as String,
+      url: json['url'] as String? ?? '',
+      title: json['title'] as String? ?? 'Unnamed Recipe',
       ingredients: List<String>.from(json['ingredients'] as List? ?? []),
       steps: List<String>.from(json['steps'] as List? ?? []),
       sourceName: json['source_name'] as String?,
+      prepMinutes: (json['prep_minutes'] as num?)?.toInt() ?? 0,
+      calories: (json['calories'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),

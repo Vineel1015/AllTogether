@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+// Helper to clean HTML: remove scripts, styles, and extra whitespace to save tokens
+function cleanHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<svg\b[^<]*(?:(?!<\/svg>)<[^<]*)*<\/svg>/gi, '')
+    .replace(/<ins\b[^<]*(?:(?!<\/ins>)<[^<]*)*<\/ins>/gi, '') // Remove ads (AdSense)
+    .replace(/\s+/g, ' ') // Collapse multiple spaces/newlines
+    .trim();
+}
+
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -28,34 +39,41 @@ serve(async (req: Request) => {
       });
     }
 
-    // Fetch the webpage content
-    const webResponse = await fetch(url);
+    // Fetch the webpage with a browser-like User-Agent to avoid being blocked
+    const webResponse = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      }
+    });
+
     if (!webResponse.ok) {
-      return new Response(JSON.stringify({ error: `Failed to fetch website: ${webResponse.status}` }), {
+      return new Response(JSON.stringify({ error: `Failed to fetch website (${webResponse.status}): ${webResponse.statusText}` }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const html = await webResponse.text();
-    // Truncate HTML to avoid token limits (first 10k chars is usually enough for recipe data)
-    const truncatedHtml = html.substring(0, 15000);
+    const rawHtml = await webResponse.text();
+    const cleanedHtml = cleanHtml(rawHtml).substring(0, 20000); // 20k chars is a good balance for Gemini 1.5 Flash
 
     const prompt = `
-      You are an expert culinary AI. 
-      Analyze the following HTML content from a cooking website and extract the recipe.
+      You are an expert culinary AI specializing in recipe extraction.
+      Analyze the following HTML content from a cooking website and extract the full recipe details.
       
       URL: ${url}
       HTML Content:
-      ${truncatedHtml}
+      ${cleanedHtml}
       
       Return a structured JSON response with:
       - title: The name of the meal
-      - ingredients: A list of ingredients with quantities if available
-      - steps: A list of cooking instructions
+      - ingredients: A list of ingredients with specific quantities (e.g. "2 cups spinach", "1 tbsp olive oil")
+      - steps: A list of detailed cooking instructions
       - source_name: The name of the website (e.g., "AllRecipes", "Food Network")
+      - prep_minutes: Estimated total time in minutes (integer)
+      - calories: Estimated calories per serving if mentioned, or your best professional estimate based on ingredients (integer)
       
-      Return ONLY valid JSON.
+      Return ONLY valid JSON. If the information is missing from the HTML, provide your best professional estimate.
     `;
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
