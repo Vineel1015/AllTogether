@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary.dia",
+    "emit-module-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-emit-module.dia",
+    "pch" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/app_links-primary.swiftdeps"
+  },
+  "/Users/vineelnadakuditi/.pub-cache/hosted/pub.dev/app_links-6.4.1/ios/app_links/Sources/app_links/AppLinksIosPlugin.swift" : {
+    "const-values" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.swiftconstvalues",
+    "dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.d",
+    "diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.o",
+    "llvm-bc" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.bc",
+    "object" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.o",
+    "swift-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin.swiftdeps",
+    "swiftmodule" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/app_links.build/Objects-normal/arm64/AppLinksIosPlugin~partial.swiftmodule"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "" : {
+    "diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/flutter_secure_storage-primary.dia",
+    "emit-module-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/flutter_secure_storage-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/flutter_secure_storage-primary-emit-module.dia",
+    "pch" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/flutter_secure_storage-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/flutter_secure_storage-primary.swiftdeps"
+  },
+  "/Users/vineelnadakuditi/.pub-cache/hosted/pub.dev/flutter_secure_storage-9.2.4/ios/Classes/FlutterSecureStorage.swift" : {
+    "const-values" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.swiftconstvalues",
+    "dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.d",
+    "diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.o",
+    "llvm-bc" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.bc",
+    "object" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.o",
+    "swift-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage.swiftdeps",
+    "swiftmodule" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/FlutterSecureStorage~partial.swiftmodule"
+  },
+  "/Users/vineelnadakuditi/.pub-cache/hosted/pub.dev/flutter_secure_storage-9.2.4/ios/Classes/SwiftFlutterSecureStoragePlugin.swift" : {
+    "const-values" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.swiftconstvalues",
+    "dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.d",
+    "diagnostics" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.dia",
+    "index-unit-output-path" : "/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.o",
+    "llvm-bc" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.bc",
+    "object" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.o",
+    "swift-dependencies" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin.swiftdeps",
+    "swiftmodule" : "/Users/vineelnadakuditi/AllTogether/app/ios/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/flutter_secure_storage.build/Objects-normal/arm64/SwiftFlutterSecureStoragePlugin~partial.swiftmodule"
+  }
+}

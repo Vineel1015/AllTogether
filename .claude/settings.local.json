@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /Users/vineelnadakuditi/AllTogether/app/scripts/run_dev.sh)"
+    ]
+  }
+}

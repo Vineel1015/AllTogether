@@ -5,6 +5,7 @@ import '../../../core/widgets/error_banner.dart';
 import '../../../core/widgets/loading_indicator.dart';
 import '../models/analytics_model.dart';
 import '../providers/analytics_provider.dart';
+import '../widgets/meal_score_card_widget.dart';
 import '../widgets/nutrition_chart_widget.dart';
 import '../widgets/score_badge_widget.dart';
 import '../widgets/sustainability_card_widget.dart';
@@ -27,12 +28,7 @@ class AnalyticsScreen extends ConsumerWidget {
           message: 'Could not load analytics. Please try again.',
           onRetry: () => ref.invalidate(analyticsProvider),
         ),
-        data: (analytics) {
-          if (analytics.isEmpty) {
-            return const _EmptyState();
-          }
-          return _AnalyticsBody(analytics: analytics);
-        },
+        data: (analytics) => _AnalyticsBody(analytics: analytics),
       ),
     );
   }
@@ -56,28 +52,41 @@ class _AnalyticsBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Nutrition section ──────────────────────────────────────────────
-          Text('Last 30 Days', style: textTheme.titleMedium),
+          // ── Meal score section (always visible) ────────────────────────────
+          Text('Your Meal Score', style: textTheme.titleMedium),
           const SizedBox(height: 12),
-          NutritionChartWidget(dailyNutrition: analytics.dailyNutrition),
-          const SizedBox(height: 16),
-          _NutritionSummaryRow(
-            totalCalories: nutrition.totalCalories,
-            avgCaloriesPerDay: nutrition.avgCaloriesPerDay,
-            proteinG: nutrition.totalProteinG,
-            carbsG: nutrition.totalCarbsG,
-            fatG: nutrition.totalFatG,
-          ),
+          const MealScoreCardWidget(),
 
-          // ── Sustainability section ─────────────────────────────────────────
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 8),
-          Text('Sustainability', style: textTheme.titleMedium),
-          const SizedBox(height: 12),
-          ScoreBadgeWidget(summary: sustainability),
-          const SizedBox(height: 12),
-          SustainabilityCardWidget(summary: sustainability),
+          if (analytics.isEmpty) ...[
+            const SizedBox(height: 32),
+            const _ReceiptEmptyState(),
+          ] else ...[
+            // ── Nutrition section ────────────────────────────────────────────
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text('Last 30 Days', style: textTheme.titleMedium),
+            const SizedBox(height: 12),
+            NutritionChartWidget(dailyNutrition: analytics.dailyNutrition),
+            const SizedBox(height: 16),
+            _NutritionSummaryRow(
+              totalCalories: nutrition.totalCalories,
+              avgCaloriesPerDay: nutrition.avgCaloriesPerDay,
+              proteinG: nutrition.totalProteinG,
+              carbsG: nutrition.totalCarbsG,
+              fatG: nutrition.totalFatG,
+            ),
+
+            // ── Sustainability section ───────────────────────────────────────
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 8),
+            Text('Sustainability', style: textTheme.titleMedium),
+            const SizedBox(height: 12),
+            ScoreBadgeWidget(summary: sustainability),
+            const SizedBox(height: 12),
+            SustainabilityCardWidget(summary: sustainability),
+          ],
         ],
       ),
     );
@@ -137,10 +146,10 @@ class _StatChip extends StatelessWidget {
   }
 }
 
-// ── Empty state ────────────────────────────────────────────────────────────────
+// ── Receipt empty state ────────────────────────────────────────────────────────
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+class _ReceiptEmptyState extends StatelessWidget {
+  const _ReceiptEmptyState();
 
   @override
   Widget build(BuildContext context) {

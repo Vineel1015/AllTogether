@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/meal_model.dart';
+import '../services/meal_scoring_service.dart';
 
 /// A DoorDash-style food card for the meal catalog.
 ///
@@ -50,6 +51,12 @@ class MealCatalogCard extends StatelessWidget {
                     child: Icon(icon, size: 46,
                         color: Colors.white.withAlpha(210)),
                   ),
+                ),
+                // Grade badge (top-left)
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: _GradeBadge(meal: meal),
                 ),
                 // "In Plan" checkmark badge
                 if (isInPlan)
@@ -190,6 +197,40 @@ class MealCatalogCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight),
       Icons.restaurant_outlined,
+    );
+  }
+}
+
+// ── Grade badge ─────────────────────────────────────────────────────────────
+
+class _GradeBadge extends StatelessWidget {
+  final Meal meal;
+
+  const _GradeBadge({required this.meal});
+
+  static const _service = MealScoringService();
+
+  @override
+  Widget build(BuildContext context) {
+    final score = _service.scoreMeal(meal);
+    final color = score.gradeColor(Theme.of(context).colorScheme);
+
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        score.grade,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
     );
   }
 }
