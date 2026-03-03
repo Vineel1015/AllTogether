@@ -12,7 +12,7 @@ import '../features/history/screens/history_screen.dart';
 import '../features/recipe_scraper/screens/recipe_scraper_screen.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { potluck, whatsCookin, kaleculations, settings }
+enum AppTab { potluck, huntAndGather, whatsCookin, kaleculations, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -101,12 +101,14 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     final isSelected = _currentTab == tab;
     final icon = switch (tab) {
       AppTab.potluck => Icons.groups_outlined,
+      AppTab.huntAndGather => Icons.search_outlined,
       AppTab.whatsCookin => Icons.restaurant_menu_outlined,
       AppTab.kaleculations => Icons.analytics_outlined,
       AppTab.settings => Icons.settings_outlined,
     };
     final selectedIcon = switch (tab) {
       AppTab.potluck => Icons.groups,
+      AppTab.huntAndGather => Icons.search,
       AppTab.whatsCookin => Icons.restaurant_menu,
       AppTab.kaleculations => Icons.analytics,
       AppTab.settings => Icons.settings,
@@ -114,6 +116,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
     final label = switch (tab) {
       AppTab.potluck => 'Potluck',
+      AppTab.huntAndGather => 'Hunt & Gather',
       AppTab.whatsCookin => "What's Cookin?",
       AppTab.kaleculations => 'Kale-culations',
       AppTab.settings => 'Settings',
@@ -176,6 +179,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                 setState(() => _currentTab = AppTab.whatsCookin);
               },
               isSelected: _currentTab == AppTab.whatsCookin && currentFinderTab == 0,
+            ),
+            _buildSidebarItem(
+              Icons.search_outlined,
+              'Hunt & Gather',
+              onTap: () => setState(() => _currentTab = AppTab.huntAndGather),
+              isSelected: _currentTab == AppTab.huntAndGather,
             ),
             _buildSidebarItem(
               Icons.eco_outlined,
@@ -241,8 +250,9 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   Widget _buildBody() {
     return switch (_currentTab) {
       AppTab.potluck => const PotluckScreen(),
-      AppTab.whatsCookin => const WhatsCookinScreen(),
-      AppTab.kaleculations => const KaleculationsScreen(),
+      AppTab.huntAndGather => const RecipeScraperScreen(),
+      AppTab.whatsCookin => const FinderScreen(),
+      AppTab.kaleculations => const AnalyticsScreen(),
       AppTab.settings => const SettingsScreen(),
     };
   }
@@ -263,14 +273,17 @@ class _PotluckScreenState extends ConsumerState<PotluckScreen> {
       length: 2,
       child: Column(
         children: [
-          const TabBar(
-            indicatorColor: Colors.green,
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(text: 'Discovery'),
-              Tab(text: 'Social Feed'),
-            ],
+          Container(
+            color: Colors.white,
+            child: const TabBar(
+              indicatorColor: Colors.green,
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              tabs: [
+                Tab(text: 'Discovery'),
+                Tab(text: 'Social Feed'),
+              ],
+            ),
           ),
           Expanded(
             child: Stack(
@@ -386,20 +399,23 @@ class KaleculationsScreen extends StatelessWidget {
       length: 2,
       child: Column(
         children: [
-          const TabBar(
-            indicatorColor: Colors.green,
-            labelColor: Colors.black,
-            unselectedLabelColor: Colors.grey,
-            tabs: [
-              Tab(text: 'Sustainability & Analytics'),
-              Tab(text: 'Receipt History'),
-            ],
+          Container(
+            color: Colors.white,
+            child: const TabBar(
+              indicatorColor: Colors.green,
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              tabs: [
+                Tab(text: 'Sustainability & Analytics'),
+                Tab(text: 'Receipt History'),
+              ],
+            ),
           ),
-          Expanded(
+          const Expanded(
             child: TabBarView(
               children: [
-                const AnalyticsScreen(),
-                const HistoryScreen(),
+                AnalyticsScreen(),
+                HistoryScreen(),
               ],
             ),
           ),
