@@ -5,9 +5,10 @@ import '../features/analytics/screens/analytics_screen.dart';
 import '../features/finder/screens/finder_screen.dart';
 import '../features/history/screens/history_screen.dart';
 import '../features/social/screens/social_feed_screen.dart';
+import '../features/discovery/screens/discovery_screen.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { social, finder, history, analytics }
+enum AppTab { discovery, social, finder, history, analytics }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -21,7 +22,7 @@ class AppScaffold extends ConsumerStatefulWidget {
 }
 
 class _AppScaffoldState extends ConsumerState<AppScaffold> {
-  AppTab _currentTab = AppTab.social;
+  AppTab _currentTab = AppTab.discovery;
   double _sidebarWidth = 250.0;
   bool _isSidebarVisible = true;
 
@@ -92,15 +93,31 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   Widget _buildNavButton(AppTab tab) {
     final isSelected = _currentTab == tab;
+    final icon = switch (tab) {
+      AppTab.discovery => Icons.explore_outlined,
+      AppTab.social => Icons.people_outline,
+      AppTab.finder => Icons.restaurant_menu_outlined,
+      AppTab.history => Icons.receipt_long_outlined,
+      AppTab.analytics => Icons.bar_chart_outlined,
+    };
+    final selectedIcon = switch (tab) {
+      AppTab.discovery => Icons.explore,
+      AppTab.social => Icons.people,
+      AppTab.finder => Icons.restaurant_menu,
+      AppTab.history => Icons.receipt_long,
+      AppTab.analytics => Icons.bar_chart,
+    };
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: TextButton(
+      child: TextButton.icon(
+        icon: Icon(isSelected ? selectedIcon : icon, size: 18),
         style: TextButton.styleFrom(
           foregroundColor: isSelected ? Colors.green[700] : Colors.grey[600],
           backgroundColor: isSelected ? Colors.green[50] : Colors.transparent,
         ),
         onPressed: () => setState(() => _currentTab = tab),
-        child: Text(
+        label: Text(
           tab.name[0].toUpperCase() + tab.name.substring(1),
           style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
         ),
@@ -149,6 +166,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   Widget _buildBody() {
     return switch (_currentTab) {
+      AppTab.discovery => const DiscoveryScreen(),
       AppTab.social => const SocialFeedScreen(),
       AppTab.finder => const FinderScreen(),
       AppTab.history => const HistoryScreen(),
