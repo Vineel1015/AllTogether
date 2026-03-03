@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/recipe_scraper_provider.dart';
 import '../../finder/providers/weekly_plan_provider.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../social/providers/social_provider.dart';
+import '../../social/models/post_model.dart';
+import '../../finder/services/meal_scoring_service.dart';
 
 class RecipeScraperScreen extends ConsumerStatefulWidget {
   const RecipeScraperScreen({super.key});
@@ -143,37 +146,62 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
   }
 
   Widget _buildRecipeDetails(dynamic recipe) {
+    // Generate a professional score for the UI
+    final scoringService = MealScoringService();
+    // Convert recipe to a meal for scoring
+    final dummyMeal = recipe.toMeal('temp');
+    final score = scoringService.scoreMeal(dummyMeal);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.green[50],
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.green[100]!),
+            border: Border.all(color: Colors.grey[200]!),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                recipe.title,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
               Row(
                 children: [
-                  if (recipe.sourceName != null) ...[
-                    Text('Source: ${recipe.sourceName}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(width: 12),
-                  ],
-                  Icon(Icons.timer_outlined, size: 14, color: Colors.blueGrey[600]),
-                  const SizedBox(width: 4),
-                  Text('${recipe.prepMinutes}m', style: TextStyle(color: Colors.blueGrey[600], fontSize: 12, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 12),
-                  Icon(Icons.local_fire_department_outlined, size: 14, color: Colors.orange[700]),
-                  const SizedBox(width: 4),
-                  Text('${recipe.calories} kcal', style: TextStyle(color: Colors.orange[700], fontSize: 12, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe.title,
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+                        ),
+                        if (recipe.sourceName != null)
+                          Text('Source: ${recipe.sourceName}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                  _buildScoreBadge(score.grade, score.gradeColor(Theme.of(context).colorScheme)),
+                ],
+              ),
+              const Divider(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildMetric(Icons.local_fire_department, '${recipe.calories}', 'kcal', Colors.orange),
+                  _buildMetric(Icons.eco, '9.5', '/10', Colors.green), // Sustainability placeholder
+                  _buildMetric(Icons.timer, '${recipe.prepMinutes}', 'min', Colors.blueGrey),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _MacroChip(label: 'Protein', value: '24g'),
+                  SizedBox(width: 8),
+                  _MacroChip(label: 'Carbs', value: '42g'),
+                  SizedBox(width: 8),
+                  _MacroChip(label: 'Fats', value: '12g'),
                 ],
               ),
             ],
@@ -224,12 +252,48 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
           child: Text('${entry.key + 1}. ${entry.value}'),
         )),
         const SizedBox(height: 32),
-        FilledButton.icon(
-          onPressed: _isAddingToPlan ? null : _confirmAndAdd,
-          icon: _isAddingToPlan 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Icon(Icons.check_circle),
-          label: const Text('Verify & Add to My Meals'),
+        Row(
+          children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: _isAddingToPlan ? null : _confirmAndAdd,
+                icon: _isAddingToPlan 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.check_circle),
+                label: const Text('Verify & Add to My Meals'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  final recipe = ref.read(recipeScraperProvider).value;
+                  final user = ref.read(authServiceProvider).currentUser;
+                  if (recipe != null && user != null) {
+                    final post = Post(
+                      id: '', // Generated by Supabase
+                      userId: user.id,
+                      username: user.userMetadata?['name'] ?? 'User',
+                      userAvatarUrl: '',
+                      content: 'Just imported this amazing recipe: ${recipe.title}! 🥘 #whatsCookin',
+                      createdAt: DateTime.now(),
+                      calories: recipe.calories.toDouble(),
+                      sustainabilityScore: 8.5, // Placeholder
+                      tags: ['healthy', 'scraped'],
+                    );
+                    await ref.read(socialFeedProvider.notifier).sharePost(post);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Shared to Potluck!')),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.share),
+                label: const Text('Share to Potluck'),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 40),
       ],
@@ -247,9 +311,55 @@ class _EmptyScraperState extends StatelessWidget {
         children: [
           Icon(Icons.language, size: 64, color: Colors.grey),
           SizedBox(height: 16),
-          Text('Ready to scrape healthy meals', style: TextStyle(color: Colors.grey)),
+          Text('Ready to hunt & gather healthy meals', style: TextStyle(color: Colors.grey)),
         ],
       ),
+    );
+  }
+}
+
+Widget _buildScoreBadge(String grade, Color color) {
+  return Container(
+    width: 40,
+    height: 40,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    alignment: Alignment.center,
+    child: Text(
+      grade,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+    ),
+  );
+}
+
+Widget _buildMetric(IconData icon, String value, String unit, Color color) {
+  return Column(
+    children: [
+      Icon(icon, color: color, size: 20),
+      const SizedBox(height: 4),
+      RichText(
+        text: TextSpan(
+          style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+          children: [
+            TextSpan(text: value),
+            TextSpan(text: unit, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.normal, color: Colors.grey)),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _MacroChip extends StatelessWidget {
+  final String label;
+  final String value;
+  const _MacroChip({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(20)),
+      child: Text('$label: $value', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 }
