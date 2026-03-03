@@ -28,10 +28,39 @@ class AppScaffold extends ConsumerStatefulWidget {
   ConsumerState<AppScaffold> createState() => _AppScaffoldState();
 }
 
-class _AppScaffoldState extends ConsumerState<AppScaffold> {
+class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderStateMixin {
   AppTab _currentTab = AppTab.potluck;
   double _sidebarWidth = 250.0;
   bool _isSidebarVisible = true;
+  bool _showHowdy = false;
+  late AnimationController _howdyController;
+
+  @override
+  void initState() {
+    super.initState();
+    _howdyController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+  }
+
+  @override
+  void dispose() {
+    _howdyController.dispose();
+    super.dispose();
+  }
+
+  void _sayHowdy() {
+    setState(() => _showHowdy = true);
+    _howdyController.forward(from: 0.0);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _howdyController.reverse().then((_) {
+          if (mounted) setState(() => _showHowdy = false);
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,11 +110,36 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
         clipBehavior: Clip.none,
         children: [
           // Mascot peeping from behind the nav bar
-          const Positioned(
+          Positioned(
             bottom: -30,
             left: 100,
-            child: MascotWidget(size: 60),
+            child: MascotWidget(
+              size: 60,
+              onTap: _sayHowdy,
+            ),
           ),
+          // Howdy Bubble
+          if (_showHowdy)
+            Positioned(
+              bottom: 10,
+              left: 160,
+              child: FadeTransition(
+                opacity: _howdyController,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: const Text(
+                    'Howdy!',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.blueGrey),
+                  ),
+                ),
+              ),
+            ),
           Row(
             children: [
               IconButton(

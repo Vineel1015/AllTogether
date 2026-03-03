@@ -4,49 +4,71 @@ import '../core/constants/brand_colors.dart';
 
 class MascotWidget extends StatefulWidget {
   final double size;
-  const MascotWidget({super.key, this.size = 100});
+  final VoidCallback? onTap;
+  const MascotWidget({super.key, this.size = 100, this.onTap});
 
   @override
   State<MascotWidget> createState() => _MascotWidgetState();
 }
 
-class _MascotWidgetState extends State<MascotWidget> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _MascotWidgetState extends State<MascotWidget> with TickerProviderStateMixin {
+  late AnimationController _eyeController;
+  late AnimationController _riseController;
   late Animation<double> _eyeMovement;
+  late Animation<double> _riseMovement;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _eyeController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
     
-    // Funny side-to-side movement for googly eyes
+    _riseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+
     _eyeMovement = Tween<double>(begin: -1.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _eyeController, curve: Curves.easeInOut),
+    );
+
+    _riseMovement = Tween<double>(begin: 0.0, end: -20.0).animate(
+      CurvedAnimation(parent: _riseController, curve: Curves.easeOut),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _eyeController.dispose();
+    _riseController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          size: Size(widget.size, widget.size),
-          painter: _MascotPainter(
-            bobValue: _controller.value,
-            eyeShift: _eyeMovement.value,
-          ),
-        );
-      },
+    return MouseRegion(
+      onEnter: (_) => _riseController.forward(),
+      onExit: (_) => _riseController.reverse(),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: Listenable.merge([_eyeController, _riseController]),
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, _riseMovement.value),
+              child: CustomPaint(
+                size: Size(widget.size, widget.size),
+                painter: _MascotPainter(
+                  bobValue: _eyeController.value,
+                  eyeShift: _eyeMovement.value,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }
