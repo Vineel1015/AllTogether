@@ -12,7 +12,6 @@ import '../providers/meal_catalog_provider.dart';
 import '../providers/stores_provider.dart';
 import '../providers/weekly_plan_provider.dart';
 import '../widgets/create_meal_sheet.dart';
-import '../../recipe_scraper/screens/recipe_scraper_screen.dart';
 import '../widgets/meal_card_deck.dart';
 
 enum FinderPhase { picking, theHaul }
@@ -42,18 +41,6 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
               icon: const Icon(Icons.shopping_basket),
               label: const Text('Go Shopping'),
             ),
-          IconButton(
-            icon: const Icon(Icons.language),
-            tooltip: 'Scrape from Web',
-            onPressed: () {
-              showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                useSafeArea: true,
-                builder: (_) => const RecipeScraperScreen(),
-              ).then((_) => ref.invalidate(userMealsProvider));
-            },
-          ),
         ],
       ),
       body: planAsync.when(
