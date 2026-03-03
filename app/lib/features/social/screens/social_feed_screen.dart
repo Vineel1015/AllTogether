@@ -50,13 +50,40 @@ class SocialFeedScreen extends StatelessWidget {
       ),
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: ListView.separated(
-        itemCount: mockPosts.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) => SocialPostCard(post: mockPosts[index]),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: const TabBar(
+          indicatorColor: Colors.green,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.grey,
+          labelStyle: TextStyle(fontWeight: FontWeight.bold),
+          tabs: [
+            Tab(text: 'For you'),
+            Tab(text: 'Following'),
+          ],
+        ),
+        body: TabBarView(
+          children: [
+            _buildFeed(mockPosts),
+            _buildFeed(mockPosts.reversed.toList()),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {},
+          backgroundColor: Colors.green,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
       ),
+    );
+  }
+
+  Widget _buildFeed(List<Post> posts) {
+    return ListView.separated(
+      itemCount: posts.length,
+      separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[200]),
+      itemBuilder: (context, index) => SocialPostCard(post: posts[index]),
     );
   }
 }
