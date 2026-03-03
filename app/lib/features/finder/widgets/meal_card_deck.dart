@@ -81,9 +81,9 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: AllTogetherColors.mascotBlue, foregroundColor: Colors.white),
               onPressed: () => widget.onSelectionComplete(_selectedMeals),
-              child: const Text('Confirm Selections'),
+              child: const Text('Confirm Selections', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
 
@@ -91,7 +91,7 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
         
         // Magician Deck Area
         SizedBox(
-          height: 400,
+          height: 450,
           child: Stack(
             alignment: Alignment.bottomCenter,
             children: [
@@ -99,8 +99,11 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
                 ...List.generate(availableMeals.length, (index) {
                   final meal = availableMeals[index];
                   final total = availableMeals.length;
-                  final angle = (index - total / 2) * (pi / 12); // Arc spread
-                  final radius = 300.0;
+                  // Pivot from the bottom center, fan out in an arc
+                  final double arcSpread = pi / 3; // 60 degrees total spread
+                  final double startAngle = -arcSpread / 2;
+                  final double angle = startAngle + (index / (total - 1)) * arcSpread;
+                  final radius = 400.0;
                   
                   return _DraggableCard(
                     meal: meal,
@@ -114,11 +117,20 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
                   );
                 }),
               if (_isShuffling)
-                const Center(child: CircularProgressIndicator(color: AllTogetherColors.mascotOrange)),
+                const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: AllTogetherColors.mascotOrange),
+                      SizedBox(height: 16),
+                      Text('Shuffling Deck...', style: TextStyle(color: AllTogetherColors.mascotOrange, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 20),
       ],
     );
   }
@@ -143,13 +155,15 @@ class _DraggableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final x = sin(angle) * radius;
-    final y = -cos(angle) * radius + radius;
+    // Pivot from bottom center
+    final double xOffset = sin(angle) * radius;
+    final double yOffset = -cos(angle) * radius + radius;
 
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 200),
-      bottom: isHovered ? y + 40 : y,
-      left: MediaQuery.of(context).size.width / 2 + x - 60,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      bottom: isHovered ? yOffset + 60 : yOffset,
+      left: (MediaQuery.of(context).size.width / 2) + xOffset - 60,
       child: Transform.rotate(
         angle: angle,
         child: MouseRegion(
@@ -157,14 +171,15 @@ class _DraggableCard extends StatelessWidget {
           onExit: (_) => onHover(false),
           child: Draggable<Meal>(
             data: meal,
+            axis: Axis.vertical,
             feedback: Material(
               color: Colors.transparent,
               child: _CardBack(meal: meal, isFaceUp: true),
             ),
             childWhenDragging: const SizedBox.shrink(),
             onDragEnd: (details) {
-              // If dragged high enough, select it
-              if (details.offset.dy < 300) {
+              // Select if dragged up past a threshold
+              if (details.offset.dy < MediaQuery.of(context).size.height * 0.5) {
                 onSelected();
               }
             },
@@ -183,32 +198,69 @@ class _CardBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AllTogetherColors.getMealColor(meal.id); // Determine by ID prefix or type
+    final color = AllTogetherColors.getMealColor(meal.id);
     
     return Container(
       width: 120,
       height: 180,
       decoration: BoxDecoration(
         color: isFaceUp ? Colors.white : color,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8, offset: const Offset(0, 4))],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white, width: 4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          )
+        ],
       ),
       child: isFaceUp 
         ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.restaurant, color: color, size: 30),
+              Icon(Icons.restaurant_menu, color: color, size: 40),
+              const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(meal.name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Text(
+                  meal.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                    color: color.darken(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${meal.calories} kcal',
+                style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
               ),
             ],
           )
         : Center(
-            child: Text('AT', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 32, fontWeight: FontWeight.w900)),
+            child: Text(
+              'AT',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.4),
+                fontSize: 40,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2,
+              ),
+            ),
           ),
     );
+  }
+}
+
+extension ColorExtension on Color {
+  Color darken([double amount = .1]) {
+    assert(amount >= 0 && amount <= 1);
+    final hsl = HSLColor.fromColor(this);
+    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
+    return hslDark.toColor();
   }
 }
 
@@ -223,20 +275,30 @@ class _SelectedCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 60,
-        height: 90,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
+        width: 70,
+        height: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 6),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color, width: 3),
+          boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.restaurant, size: 16, color: color),
+            Icon(Icons.restaurant_menu, size: 20, color: color),
             const SizedBox(height: 4),
-            Text(meal.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Text(
+                meal.name, 
+                maxLines: 2, 
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis, 
+                style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: color.darken(0.2)),
+              ),
+            ),
           ],
         ),
       ),

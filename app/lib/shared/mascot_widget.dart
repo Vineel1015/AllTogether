@@ -65,39 +65,41 @@ class _MascotPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2 + (bobValue * 5));
-    final radius = size.width / 2.5;
+    // Position mascot slightly lower to create 'peeping' effect
+    final center = Offset(size.width / 2, size.height / 1.5 + (bobValue * 3));
+    final faceRadius = size.width / 2.2;
 
-    // Face
+    // 1. Face (Orange Circle)
     final facePaint = Paint()..color = AllTogetherColors.mascotOrange;
-    canvas.drawCircle(center, radius, facePaint);
+    canvas.drawCircle(center, faceRadius, facePaint);
 
-    // Eye whites
-    final whitePaint = Paint()..color = Colors.white;
-    final leftEyeCenter = center + Offset(-radius / 2.5, -radius / 4);
-    final rightEyeCenter = center + Offset(radius / 2.5, -radius / 4);
-    canvas.drawCircle(leftEyeCenter, radius / 4, whitePaint);
-    canvas.drawCircle(rightEyeCenter, radius / 4, whitePaint);
+    // 2. Eyes (Large Blue Circles - Fixed Position)
+    final eyePaint = Paint()..color = AllTogetherColors.mascotBlue;
+    final eyeRadius = faceRadius * 0.35;
+    final leftEyeCenter = center + Offset(-faceRadius * 0.45, -faceRadius * 0.1);
+    final rightEyeCenter = center + Offset(faceRadius * 0.45, -faceRadius * 0.1);
+    canvas.drawCircle(leftEyeCenter, eyeRadius, eyePaint);
+    canvas.drawCircle(rightEyeCenter, eyeRadius, eyePaint);
 
-    // Pupils (Googly effect)
-    final pupilPaint = Paint()..color = Colors.black;
-    canvas.drawCircle(leftEyeCenter + eyeOffset, radius / 8, pupilPaint);
-    canvas.drawCircle(rightEyeCenter + eyeOffset, radius / 8, pupilPaint);
+    // 3. Pupils (Grey Circles - Moving)
+    final pupilPaint = Paint()..color = AllTogetherColors.mascotGrey;
+    final pupilRadius = eyeRadius * 0.3;
+    // Limit pupil movement within the blue eye
+    final limitedOffset = Offset(
+      eyeOffset.dx.clamp(-pupilRadius, pupilRadius),
+      eyeOffset.dy.clamp(-pupilRadius, pupilRadius),
+    );
+    canvas.drawCircle(leftEyeCenter + limitedOffset, pupilRadius, pupilPaint);
+    canvas.drawCircle(rightEyeCenter + limitedOffset, pupilRadius, pupilPaint);
 
-    // Smile
-    final smilePaint = Paint()
-      ..color = Colors.black.withOpacity(0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    
-    final smilePath = Path()
-      ..addArc(
-        Rect.fromCenter(center: center + Offset(0, radius / 4), width: radius, height: radius / 2),
-        0.2,
-        pi - 0.4,
-      );
-    canvas.drawPath(smilePath, smilePaint);
+    // 4. Mouth (Blue Semi-Circle at bottom)
+    final mouthPaint = Paint()..color = AllTogetherColors.mascotBlue;
+    final mouthRect = Rect.fromCenter(
+      center: center + Offset(0, faceRadius * 0.4),
+      width: faceRadius * 1.1,
+      height: faceRadius * 0.7,
+    );
+    canvas.drawArc(mouthRect, 0, pi, true, mouthPaint);
   }
 
   @override

@@ -12,6 +12,7 @@ import '../features/finder/models/meal_model.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/social/models/post_model.dart';
 import '../features/social/providers/social_provider.dart';
+import 'mascot_widget.dart';
 
 /// Tab indices used by [AppScaffold].
 enum AppTab { potluck, whatsCookin, kaleculations, settings }
@@ -76,23 +77,34 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       color: Colors.white,
-      child: Row(
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          IconButton(
-            icon: Icon(_isSidebarVisible ? Icons.menu_open : Icons.menu),
-            onPressed: () => setState(() => _isSidebarVisible = !_isSidebarVisible),
+          // Mascot peeping from behind the nav bar
+          const Positioned(
+            bottom: -30,
+            left: 100,
+            child: MascotWidget(size: 60),
           ),
-          const SizedBox(width: 8),
-          const Text(
-            'AllTogether',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          const Spacer(),
-          ...AppTab.values.map((tab) => _buildNavButton(tab)),
-          const SizedBox(width: 8),
-          const CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=me'),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(_isSidebarVisible ? Icons.menu_open : Icons.menu),
+                onPressed: () => setState(() => _isSidebarVisible = !_isSidebarVisible),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'AllTogether',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const Spacer(),
+              ...AppTab.values.map((tab) => _buildNavButton(tab)),
+              const SizedBox(width: 8),
+              const CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=me'),
+              ),
+            ],
           ),
         ],
       ),
