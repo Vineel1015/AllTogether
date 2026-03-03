@@ -5,10 +5,10 @@ FROM python:3.9-slim
 WORKDIR /app
 
 # Install system dependencies for Scrapy/BS4
-RUN apt-get update && apt-get install -y 
-    gcc 
-    libxml2-dev 
-    libxslt-dev 
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libxml2-dev \
+    libxslt-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the current directory contents into the container at /app
