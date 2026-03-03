@@ -109,9 +109,32 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
                   child: CircularProgressIndicator(),
                 ),
               ),
-              error: (e, _) => Center(
-                child: Text('Error: $e', style: const TextStyle(color: Colors.red)),
-              ),
+              error: (e, _) {
+                final errorStr = e.toString();
+                final is401 = errorStr.contains('401') || errorStr.contains('JWT');
+                
+                return Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        is401 
+                          ? 'Your session has expired. Please sign in again.' 
+                          : 'Error: $e', 
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      if (is401) ...[
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: () => ref.read(authServiceProvider).signOut(),
+                          icon: const Icon(Icons.login),
+                          label: const Text('Sign In'),
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),

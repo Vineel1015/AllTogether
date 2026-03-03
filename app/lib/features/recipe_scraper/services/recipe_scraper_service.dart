@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/scraped_recipe_model.dart';
 import '../../../core/models/app_result.dart';
@@ -15,11 +16,14 @@ class RecipeScraperService {
         body: {'url': url},
       );
 
-      if (response.data == null) {
+      final dynamic rawData = response.data;
+      if (rawData == null) {
         return const AppFailure('Failed to scrape recipe from website.');
       }
 
-      final data = response.data as Map<String, dynamic>;
+      final Map<String, dynamic> data = rawData is String 
+          ? jsonDecode(rawData) as Map<String, dynamic>
+          : rawData as Map<String, dynamic>;
       
       if (data.containsKey('error')) {
         return AppFailure(data['error'] as String);

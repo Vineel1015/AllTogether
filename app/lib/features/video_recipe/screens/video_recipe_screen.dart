@@ -94,10 +94,36 @@ class _VideoRecipeScreenState extends ConsumerState<VideoRecipeScreen> {
           Expanded(
             child: videoRecipesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Text('Error: $e', textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
-              )),
+              error: (e, _) {
+                final errorStr = e.toString();
+                final is401 = errorStr.contains('401') || errorStr.contains('JWT');
+                
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          is401 
+                            ? 'Your session has expired. Please sign in again.' 
+                            : 'Error: $e', 
+                          textAlign: TextAlign.center, 
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        if (is401) ...[
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: () => ref.read(authServiceProvider).signOut(),
+                            icon: const Icon(Icons.login),
+                            label: const Text('Sign In'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
               data: (recipes) => recipes.isEmpty
                   ? const Center(
                       child: Text('No extracted recipes yet. Start by entering a video URL!'),

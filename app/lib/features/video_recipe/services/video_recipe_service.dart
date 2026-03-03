@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/video_recipe_model.dart';
 import '../../../core/models/app_result.dart';
@@ -16,11 +17,14 @@ class VideoRecipeService {
         body: {'video_url': videoUrl},
       );
 
-      if (response.data == null) {
+      final dynamic rawData = response.data;
+      if (rawData == null) {
         return const AppFailure('Failed to extract recipe from video.');
       }
 
-      final data = response.data as Map<String, dynamic>;
+      final Map<String, dynamic> data = rawData is String 
+          ? jsonDecode(rawData) as Map<String, dynamic>
+          : rawData as Map<String, dynamic>;
       
       // The Edge Function will return structured JSON
       return AppSuccess(VideoRecipe(
