@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/video_recipe_model.dart';
 import '../../../core/models/app_result.dart';
@@ -34,7 +33,7 @@ class VideoRecipeService {
         createdAt: DateTime.now(),
       ));
     } on FunctionException catch (e) {
-      return AppFailure('AI Processing Error: ${e.message}', code: e.status.toString());
+      return AppFailure('AI Processing Error: ${e.details ?? 'Unknown function error'}', code: e.status.toString());
     } catch (e) {
       return AppFailure('Unexpected error: $e');
     }

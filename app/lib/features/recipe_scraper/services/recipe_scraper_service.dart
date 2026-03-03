@@ -21,13 +21,17 @@ class RecipeScraperService {
 
       final data = response.data as Map<String, dynamic>;
       
+      if (data.containsKey('error')) {
+        return AppFailure(data['error'] as String);
+      }
+      
       return AppSuccess(ScrapedRecipe.fromJson({
         ...data,
         'url': url,
         'created_at': DateTime.now().toIso8601String(),
       }));
     } on FunctionException catch (e) {
-      return AppFailure('Scraping Error: ${e.message}', code: e.status.toString());
+      return AppFailure('Scraping Error: ${e.details ?? 'Unknown function error'}', code: e.status.toString());
     } catch (e) {
       return AppFailure('Unexpected error: $e');
     }

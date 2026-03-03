@@ -39,7 +39,7 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Unverified Ingredients'),
-          content: const Text('You haven't verified all ingredients. Are you sure they are factual and make sense?'),
+          content: const Text('You haven\'t verified all ingredients. Are you sure they are factual and make sense?'),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Go Back')),
             TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes, Add Anyway')),

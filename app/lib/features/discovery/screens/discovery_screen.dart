@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../finder/models/meal_model.dart';
+import '../../finder/models/preset_meals.dart';
+import '../../finder/providers/meal_catalog_provider.dart';
+import '../../finder/providers/weekly_plan_provider.dart';
 import '../widgets/discovery_card.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
@@ -11,106 +14,92 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
-  // Using some mock meals for discovery
-  final List<Meal> _meals = [
-    const Meal(
-      id: 'd1',
-      name: 'Vegan Avocado Toast',
-      ingredients: ['Sourdough bread', 'Avocado', 'Red pepper flakes', 'Lemon', 'Sea salt'],
-      calories: 280,
-      prepMinutes: 10,
-      price: 5.50,
-    ),
-    const Meal(
-      id: 'd2',
-      name: 'Sustainable Salmon Salad',
-      ingredients: ['Wild-caught salmon', 'Kale', 'Cherry tomatoes', 'Cucumber', 'Lemon vinaigrette'],
-      calories: 420,
-      prepMinutes: 15,
-      price: 12.00,
-    ),
-    const Meal(
-      id: 'd3',
-      name: 'Quinoa Power Bowl',
-      ingredients: ['Quinoa', 'Black beans', 'Corn', 'Spinach', 'Tahini dressing'],
-      calories: 380,
-      prepMinutes: 20,
-      price: 9.75,
-    ),
-  ];
-
   int _currentIndex = 0;
 
-  void _nextMeal(bool accepted) {
-    setState(() {
-      _currentIndex = (_currentIndex + 1) % _meals.length;
-    });
-    
-    // In a real app, you'd save the meal if accepted
+  void _nextMeal(List<Meal> meals, bool accepted) async {
     if (accepted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Saved ${_meals[_currentIndex == 0 ? _meals.length - 1 : _currentIndex - 1].name}!'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      final meal = meals[_currentIndex];
+      await ref.read(weeklyPlanNotifierProvider.notifier).addMeal(meal);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added ${meal.name} to your plan!'),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     }
+
+    setState(() {
+      _currentIndex = (_currentIndex + 1) % (meals.length);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_meals.isEmpty) {
-      return const Center(child: Text('No more meals to discover!'));
-    }
+    final userMealsAsync = ref.watch(userMealsProvider);
+    
+    return userMealsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (userMeals) {
+        final allMeals = [...presetMeals, ...userMeals];
+        if (allMeals.isEmpty) {
+          return const Center(child: Text('No meals found to discover!'));
+        }
 
-    final currentMeal = _meals[_currentIndex];
-    final isWeb = Theme.of(context).platform != TargetPlatform.android && 
-                 Theme.of(context).platform != TargetPlatform.iOS;
+        // Ensure current index is within bounds if list changed
+        if (_currentIndex >= allMeals.length) {
+          _currentIndex = 0;
+        }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
-              child: Text(
-                'Discover Your Next Meal',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ),
-            Expanded(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Tinder style card
-                  DiscoveryCard(
-                    meal: currentMeal,
-                    onSwipeLeft: () => _nextMeal(false),
-                    onSwipeRight: () => _nextMeal(true),
+        final currentMeal = allMeals[_currentIndex];
+        final isWeb = Theme.of(context).platform != TargetPlatform.android && 
+                     Theme.of(context).platform != TargetPlatform.iOS;
+
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Text(
+                    'Discover Your Next Meal',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                  
-                  // Web/Desktop Arrows
-                  if (isWeb)
-                    Positioned(
-                      left: 20,
-                      child: _buildArrowButton(Icons.arrow_back, () => _nextMeal(false), Colors.red),
-                    ),
-                  if (isWeb)
-                    Positioned(
-                      right: 20,
-                      child: _buildArrowButton(Icons.arrow_forward, () => _nextMeal(true), Colors.green),
-                    ),
-                ],
-              ),
+                ),
+                Expanded(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      DiscoveryCard(
+                        meal: currentMeal,
+                        onSwipeLeft: () => _nextMeal(allMeals, false),
+                        onSwipeRight: () => _nextMeal(allMeals, true),
+                      ),
+                      if (isWeb)
+                        Positioned(
+                          left: 20,
+                          child: _buildArrowButton(Icons.arrow_back, () => _nextMeal(allMeals, false), Colors.red),
+                        ),
+                      if (isWeb)
+                        Positioned(
+                          right: 20,
+                          child: _buildArrowButton(Icons.arrow_forward, () => _nextMeal(allMeals, true), Colors.green),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                _buildActionButtons(allMeals),
+                const SizedBox(height: 20),
+              ],
             ),
-            const SizedBox(height: 40),
-            _buildActionButtons(),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -130,13 +119,13 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(List<Meal> meals) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildCircleButton(Icons.close, () => _nextMeal(false), Colors.red),
+        _buildCircleButton(Icons.close, () => _nextMeal(meals, false), Colors.red),
         const SizedBox(width: 40),
-        _buildCircleButton(Icons.favorite, () => _nextMeal(true), Colors.green),
+        _buildCircleButton(Icons.favorite, () => _nextMeal(meals, true), Colors.green),
       ],
     );
   }

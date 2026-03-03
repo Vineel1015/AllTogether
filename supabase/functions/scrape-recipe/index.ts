@@ -65,15 +65,17 @@ serve(async (req: Request) => {
       HTML Content:
       ${cleanedHtml}
       
-      Return a structured JSON response with:
-      - title: The name of the meal
-      - ingredients: A list of ingredients with specific quantities (e.g. "2 cups spinach", "1 tbsp olive oil")
-      - steps: A list of detailed cooking instructions
-      - source_name: The name of the website (e.g., "AllRecipes", "Food Network")
-      - prep_minutes: Estimated total time in minutes (integer)
-      - calories: Estimated calories per serving if mentioned, or your best professional estimate based on ingredients (integer)
+      IMPORTANT: If the content does NOT contain a recipe (ingredients and instructions), you MUST return a JSON object with an "error" field explaining why, and nothing else.
       
-      Return ONLY valid JSON. If the information is missing from the HTML, provide your best professional estimate.
+      If a recipe is found, return a structured JSON response with:
+      - title: The name of the meal
+      - ingredients: A list of ingredients with specific quantities
+      - steps: A list of detailed cooking instructions
+      - source_name: The name of the website
+      - prep_minutes: Estimated total time in minutes (integer)
+      - calories: Estimated calories per serving (integer)
+      
+      Return ONLY valid JSON.
     `;
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
