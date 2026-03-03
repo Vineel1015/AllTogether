@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/analytics/screens/analytics_screen.dart';
 import '../features/finder/screens/finder_screen.dart';
-import '../features/history/screens/history_screen.dart';
 import '../features/social/screens/social_feed_screen.dart';
 import '../features/discovery/screens/discovery_screen.dart';
+import '../features/settings/screens/settings_screen.dart';
+import '../features/finder/providers/finder_tab_provider.dart';
+import '../features/video_recipe/screens/video_recipe_screen.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { discovery, social, finder, history, analytics }
+enum AppTab { discovery, social, videoRecipe, finder, history, analytics, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -96,16 +98,20 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     final icon = switch (tab) {
       AppTab.discovery => Icons.explore_outlined,
       AppTab.social => Icons.people_outline,
+      AppTab.videoRecipe => Icons.video_library_outlined,
       AppTab.finder => Icons.restaurant_menu_outlined,
       AppTab.history => Icons.receipt_long_outlined,
       AppTab.analytics => Icons.bar_chart_outlined,
+      AppTab.settings => Icons.settings_outlined,
     };
     final selectedIcon = switch (tab) {
       AppTab.discovery => Icons.explore,
       AppTab.social => Icons.people,
+      AppTab.videoRecipe => Icons.video_library,
       AppTab.finder => Icons.restaurant_menu,
       AppTab.history => Icons.receipt_long,
       AppTab.analytics => Icons.bar_chart,
+      AppTab.settings => Icons.settings,
     };
 
     return Padding(
@@ -143,24 +149,65 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
               ),
             ),
           ),
-          _buildSidebarItem(Icons.shopping_cart_outlined, 'Shopping List'),
-          _buildSidebarItem(Icons.restaurant_outlined, 'My Meals'),
-          _buildSidebarItem(Icons.eco_outlined, 'Impact Stats'),
-          _buildSidebarItem(Icons.people_outline, 'Following'),
+          _buildSidebarItem(
+            Icons.shopping_cart_outlined,
+            'Shopping List',
+            onTap: () {
+              ref.read(finderTabProvider.notifier).state = 1;
+              setState(() => _currentTab = AppTab.finder);
+            },
+            isSelected: _currentTab == AppTab.finder && ref.watch(finderTabProvider) == 1,
+          ),
+          _buildSidebarItem(
+            Icons.restaurant_outlined,
+            'My Meals',
+            onTap: () {
+              ref.read(finderTabProvider.notifier).state = 0;
+              setState(() => _currentTab = AppTab.finder);
+            },
+            isSelected: _currentTab == AppTab.finder && ref.watch(finderTabProvider) == 0,
+          ),
+          _buildSidebarItem(
+            Icons.eco_outlined,
+            'Impact Stats',
+            onTap: () => setState(() => _currentTab = AppTab.analytics),
+            isSelected: _currentTab == AppTab.analytics,
+          ),
+          _buildSidebarItem(
+            Icons.people_outline,
+            'Following',
+            onTap: () => setState(() => _currentTab = AppTab.social),
+            isSelected: _currentTab == AppTab.social,
+          ),
           const Spacer(),
-          _buildSidebarItem(Icons.settings_outlined, 'Settings'),
+          _buildSidebarItem(
+            Icons.settings_outlined,
+            'Settings',
+            onTap: () => setState(() => _currentTab = AppTab.settings),
+            isSelected: _currentTab == AppTab.settings,
+          ),
           const SizedBox(height: 16),
         ],
       ),
     );
   }
 
-  Widget _buildSidebarItem(IconData icon, String title) {
+  Widget _buildSidebarItem(IconData icon, String title,
+      {required VoidCallback onTap, bool isSelected = false}) {
     return ListTile(
-      leading: Icon(icon, size: 20),
-      title: Text(title, style: const TextStyle(fontSize: 14)),
+      leading: Icon(icon, size: 20, color: isSelected ? Colors.green[700] : null),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Colors.green[700] : null,
+        ),
+      ),
       dense: true,
-      onTap: () {},
+      selected: isSelected,
+      selectedTileColor: Colors.green[50],
+      onTap: onTap,
     );
   }
 
@@ -168,9 +215,11 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     return switch (_currentTab) {
       AppTab.discovery => const DiscoveryScreen(),
       AppTab.social => const SocialFeedScreen(),
+      AppTab.videoRecipe => const VideoRecipeScreen(),
       AppTab.finder => const FinderScreen(),
       AppTab.history => const HistoryScreen(),
       AppTab.analytics => const AnalyticsScreen(),
+      AppTab.settings => const SettingsScreen(),
     };
   }
 }

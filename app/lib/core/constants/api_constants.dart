@@ -12,11 +12,13 @@ class ApiConstants {
   // Google Places — proxied via Supabase Edge Function (key stays server-side)
   static const nearbyStoresEdgeFunction = 'get-nearby-stores';
 
+  // Claude — proxied via Supabase Edge Function (key stays server-side)
+  static const claudeEdgeFunction = 'generate-meal-plan';
+
   // ── Open Food Facts ───────────────────────────────────────────────────────
   static const openFoodFactsBaseUrl = 'https://world.openfoodfacts.org/api/v2';
 
   // ── Climatiq ──────────────────────────────────────────────────────────────
-  static const climatiqApiKey = String.fromEnvironment('CLIMATIQ_API_KEY');
   static const climatiqBaseUrl = 'https://api.climatiq.io/data/v1';
 
   // ── Hive box names ────────────────────────────────────────────────────────

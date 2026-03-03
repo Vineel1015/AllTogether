@@ -8,12 +8,14 @@ class AppUser {
   final String email;
   final String name;
   final DateTime createdAt;
+  final DateTime? lastNameChange;
 
   const AppUser({
     required this.id,
     required this.email,
     required this.name,
     required this.createdAt,
+    this.lastNameChange,
   });
 
   factory AppUser.fromSupabaseUser(User user) {
@@ -22,6 +24,9 @@ class AppUser {
       email: user.email ?? '',
       name: user.userMetadata?['name'] as String? ?? '',
       createdAt: DateTime.parse(user.createdAt),
+      lastNameChange: user.userMetadata?['last_name_change'] != null
+          ? DateTime.parse(user.userMetadata!['last_name_change'] as String)
+          : null,
     );
   }
 
@@ -30,5 +35,6 @@ class AppUser {
         'email': email,
         'name': name,
         'createdAt': createdAt.toIso8601String(),
+        'lastNameChange': lastNameChange?.toIso8601String(),
       };
 }

@@ -6,6 +6,7 @@ import '../models/meal_model.dart';
 import '../models/preset_meals.dart';
 import '../models/weekly_plan_model.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../providers/finder_tab_provider.dart';
 import '../providers/meal_catalog_provider.dart';
 import '../providers/stores_provider.dart';
 import '../providers/weekly_plan_provider.dart';
@@ -14,51 +15,94 @@ import '../widgets/meal_catalog_card_widget.dart';
 import '../widgets/store_card_widget.dart';
 
 /// The Finder tab — DoorDash-style meal catalog with an "In Your Plan" strip.
-class FinderScreen extends ConsumerWidget {
+class FinderScreen extends ConsumerStatefulWidget {
   const FinderScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FinderScreen> createState() => _FinderScreenState();
+}
+
+class _FinderScreenState extends ConsumerState<FinderScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: ref.read(finderTabProvider),
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) return;
+      ref.read(finderTabProvider.notifier).state = _tabController.index;
+    });
+  }
+
+  @override
+  void didUpdateWidget(FinderScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final providerIndex = ref.read(finderTabProvider);
+    if (_tabController.index != providerIndex) {
+      _tabController.animateTo(providerIndex);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Listen for changes from the sidebar
+    ref.listen<int>(finderTabProvider, (previous, next) {
+      if (_tabController.index != next) {
+        _tabController.animateTo(next);
+      }
+    });
+
     final planAsync = ref.watch(weeklyPlanNotifierProvider);
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Meal Planner'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'Create meal',
-              onPressed: () {
-                final container = ProviderScope.containerOf(context);
-                showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => UncontrolledProviderScope(
-                    container: container,
-                    child: const CreateMealSheet(),
-                  ),
-                ).then((_) => ref.invalidate(userMealsProvider));
-              },
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Meal Planner'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            tooltip: 'Create meal',
+            onPressed: () {
+              final container = ProviderScope.containerOf(context);
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => UncontrolledProviderScope(
+                  container: container,
+                  child: const CreateMealSheet(),
+                ),
+              ).then((_) => ref.invalidate(userMealsProvider));
+            },
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.restaurant_menu_outlined), text: 'Plan'),
+            Tab(icon: Icon(Icons.shopping_cart_outlined), text: 'Shopping'),
           ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(icon: Icon(Icons.restaurant_menu_outlined), text: 'Plan'),
-              Tab(icon: Icon(Icons.shopping_cart_outlined), text: 'Shopping'),
-            ],
-          ),
         ),
-        body: planAsync.when(
-          loading: () => const LoadingIndicator(),
-          error: (error, _) => _ErrorBody(error: error, ref: ref),
-          data: (plan) => TabBarView(
-            children: [
-              _CatalogTab(plan: plan),
-              _ShoppingTab(items: plan?.shoppingList ?? const []),
-            ],
-          ),
+      ),
+      body: planAsync.when(
+        loading: () => const LoadingIndicator(),
+        error: (error, _) => _ErrorBody(error: error, ref: ref),
+        data: (plan) => TabBarView(
+          controller: _tabController,
+          children: [
+            _CatalogTab(plan: plan),
+            _ShoppingTab(items: plan?.shoppingList ?? const []),
+          ],
         ),
       ),
     );

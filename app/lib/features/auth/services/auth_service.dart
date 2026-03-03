@@ -122,4 +122,43 @@ class AuthService {
       return AppFailure('Unexpected error: $e');
     }
   }
+
+  // ── Update User Name ───────────────────────────────────────────────────────
+
+  Future<AppResult<void>> updateUserName(String newName) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return const AppFailure('Not authenticated');
+
+      final lastChange = user.userMetadata?['last_name_change'] != null
+          ? DateTime.parse(user.userMetadata!['last_name_change'] as String)
+          : null;
+
+      if (lastChange != null) {
+        final now = DateTime.now();
+        final difference = now.difference(lastChange);
+        if (difference.inHours < 24) {
+          return const AppFailure(
+            'You can only change your username once every 24 hours.',
+            code: 'limit_exceeded',
+          );
+        }
+      }
+
+      await _supabase.auth.updateUser(
+        UserAttributes(
+          data: {
+            'name': newName,
+            'last_name_change': DateTime.now().toIso8601String(),
+          },
+        ),
+      );
+
+      return const AppSuccess(null);
+    } on AuthException catch (e) {
+      return AppFailure(e.message, code: 'auth_error');
+    } catch (e) {
+      return AppFailure('Unexpected error: $e');
+    }
+  }
 }

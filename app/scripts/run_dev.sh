@@ -72,7 +72,4 @@ cd "$REPO_ROOT/app"
 flutter run \
   --dart-define=SUPABASE_URL="$SUPABASE_URL" \
   --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-  --dart-define=CLAUDE_API_KEY="$CLAUDE_API_KEY" \
-  --dart-define=GOOGLE_PLACES_API_KEY="$GOOGLE_PLACES_API_KEY" \
-  --dart-define=CLIMATIQ_API_KEY="$CLIMATIQ_API_KEY" \
   "$@"
