@@ -85,60 +85,84 @@ class MealCatalogCard extends StatelessWidget {
                   Text(
                     meal.name,
                     style: textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                    maxLines: 2,
+                        ?.copyWith(fontWeight: FontWeight.w800, fontSize: 13),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.local_fire_department_outlined,
-                          size: 12, color: Colors.orange),
+                      Icon(Icons.local_fire_department_rounded,
+                          size: 14, color: Colors.orange[700]),
                       const SizedBox(width: 2),
                       Text(
                         '${meal.calories} kcal',
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.schedule_outlined,
-                          size: 12, color: Colors.grey),
-                      const SizedBox(width: 2),
-                      Text(
-                        '${meal.prepMinutes} min',
-                        style: textTheme.bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule_rounded,
+                              size: 14, color: Colors.blueGrey),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${meal.prepMinutes}m',
+                            style: textTheme.bodySmall?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                      if (meal.price != null)
+                        Text(
+                          '\$${meal.price!.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            color: Colors.green[700],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
                   // Add / Remove button
                   SizedBox(
                     width: double.infinity,
-                    height: 30,
+                    height: 32,
                     child: isInPlan
                         ? OutlinedButton(
                             onPressed: onRemove,
                             style: OutlinedButton.styleFrom(
                               padding: EdgeInsets.zero,
                               side: BorderSide(
-                                  color: colorScheme.error, width: 1),
+                                  color: Colors.red[300]!, width: 1.5),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
                             child: Text(
                               '− Remove',
                               style: TextStyle(
-                                  fontSize: 11, color: colorScheme.error),
+                                  fontSize: 11,
+                                  color: Colors.red[700],
+                                  fontWeight: FontWeight.bold),
                             ),
                           )
                         : FilledButton(
                             onPressed: onAdd,
                             style: FilledButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              textStyle: const TextStyle(fontSize: 11),
+                              backgroundColor: Colors.green[600],
+                              textStyle: const TextStyle(
+                                  fontSize: 11, fontWeight: FontWeight.bold),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
+                                  borderRadius: BorderRadius.circular(10)),
                             ),
                             child: const Text('+ Add to Plan'),
                           ),

@@ -65,7 +65,7 @@ class AnalyticsService {
                 dateKey,
                 () => _DayAccumulator(receipt.scannedAt),
               )
-              .add(cal, protein, carbs, fat, fiber);
+              .add(cal, protein, carbs, fat, fiber, item.price ?? 0.0);
 
           // Sustainability: 100 g per serving → 0.1 kg
           final weightKg = servings * 0.1;
@@ -98,13 +98,15 @@ class AnalyticsService {
         totalProtein = 0,
         totalCarbs = 0,
         totalFat = 0,
-        totalFiber = 0;
+        totalFiber = 0,
+        totalCost = 0;
     for (final day in dailyNutrition) {
       totalCal += day.totalCalories;
       totalProtein += day.totalProteinG;
       totalCarbs += day.totalCarbsG;
       totalFat += day.totalFatG;
       totalFiber += day.totalFiberG;
+      totalCost += day.totalCost;
     }
 
     final avgCo2ePerDay = numDays > 0 ? totalCo2e / numDays : 0.0;
@@ -120,7 +122,9 @@ class AnalyticsService {
         totalCarbsG: totalCarbs,
         totalFatG: totalFat,
         totalFiberG: totalFiber,
+        totalCost: totalCost,
         avgCaloriesPerDay: numDays > 0 ? totalCal / numDays : 0.0,
+        avgCostPerDay: numDays > 0 ? totalCost / numDays : 0.0,
       ),
       sustainabilitySummary: SustainabilitySummary(
         totalCo2eKg: totalCo2e,
@@ -176,6 +180,7 @@ class _DayAccumulator {
   double _carbs = 0;
   double _fat = 0;
   double _fiber = 0;
+  double _cost = 0;
 
   _DayAccumulator(this._date);
 
@@ -185,12 +190,14 @@ class _DayAccumulator {
     double carbs,
     double fat,
     double fiber,
+    double cost,
   ) {
     _calories += cal;
     _protein += protein;
     _carbs += carbs;
     _fat += fat;
     _fiber += fiber;
+    _cost += cost;
   }
 
   DailyNutrition toModel() => DailyNutrition(
@@ -200,5 +207,6 @@ class _DayAccumulator {
         totalCarbsG: _carbs,
         totalFatG: _fat,
         totalFiberG: _fiber,
+        totalCost: _cost,
       );
 }

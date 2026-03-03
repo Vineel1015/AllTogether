@@ -5,9 +5,11 @@ class NutritionSummary {
   final double totalCarbsG;
   final double totalFatG;
   final double totalFiberG;
+  final double totalCost;
 
   /// Average calories per day, computed over days that have data.
   final double avgCaloriesPerDay;
+  final double avgCostPerDay;
 
   const NutritionSummary({
     required this.totalCalories,
@@ -15,6 +17,8 @@ class NutritionSummary {
     required this.totalCarbsG,
     required this.totalFatG,
     required this.totalFiberG,
+    required this.totalCost,
     required this.avgCaloriesPerDay,
+    required this.avgCostPerDay,
   });
 }

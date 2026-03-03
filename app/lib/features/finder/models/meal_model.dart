@@ -8,6 +8,7 @@ class Meal {
   final List<String> ingredients;
   final int calories;
   final int prepMinutes;
+  final double? price;
   final bool isPreset;
 
   const Meal({
@@ -17,6 +18,7 @@ class Meal {
     required this.ingredients,
     required this.calories,
     required this.prepMinutes,
+    this.price,
     this.isPreset = false,
   });
 
@@ -29,6 +31,7 @@ class Meal {
         ingredients: List<String>.from(json['ingredients'] as List? ?? []),
         calories: (json['calories'] as num?)?.toInt() ?? 0,
         prepMinutes: (json['prep_minutes'] as num?)?.toInt() ?? 0,
+        price: (json['price'] as num?)?.toDouble(),
         isPreset: json['is_preset'] as bool? ?? false,
       );
 
@@ -57,6 +60,7 @@ class Meal {
       ingredients: ingredients,
       calories: (json['calories'] as num?)?.toInt() ?? 0,
       prepMinutes: (json['prep_minutes'] as num?)?.toInt() ?? 0,
+      price: (json['price'] as num?)?.toDouble(),
       isPreset: json['user_id'] == null,
     );
   }
@@ -70,6 +74,7 @@ class Meal {
         'ingredients': ingredients,
         'calories': calories,
         'prep_minutes': prepMinutes,
+        'price': price,
         'is_preset': isPreset,
       };
 
@@ -80,6 +85,7 @@ class Meal {
         'ingredients': ingredients,
         'calories': calories,
         'prep_minutes': prepMinutes,
+        'price': price,
       };
 
   Meal copyWith({
@@ -89,6 +95,7 @@ class Meal {
     List<String>? ingredients,
     int? calories,
     int? prepMinutes,
+    double? price,
     bool? isPreset,
   }) =>
       Meal(
@@ -98,6 +105,7 @@ class Meal {
         ingredients: ingredients ?? this.ingredients,
         calories: calories ?? this.calories,
         prepMinutes: prepMinutes ?? this.prepMinutes,
+        price: price ?? this.price,
         isPreset: isPreset ?? this.isPreset,
       );
 }

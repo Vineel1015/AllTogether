@@ -6,6 +6,7 @@ class DailyNutrition {
   final double totalCarbsG;
   final double totalFatG;
   final double totalFiberG;
+  final double totalCost;
 
   const DailyNutrition({
     required this.date,
@@ -14,5 +15,6 @@ class DailyNutrition {
     required this.totalCarbsG,
     required this.totalFatG,
     required this.totalFiberG,
+    this.totalCost = 0.0,
   });
 }

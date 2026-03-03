@@ -75,6 +75,8 @@ class _AnalyticsBody extends StatelessWidget {
               proteinG: nutrition.totalProteinG,
               carbsG: nutrition.totalCarbsG,
               fatG: nutrition.totalFatG,
+              totalCost: nutrition.totalCost,
+              avgCostPerDay: nutrition.avgCostPerDay,
             ),
 
             // ── Sustainability section ───────────────────────────────────────
@@ -101,6 +103,8 @@ class _NutritionSummaryRow extends StatelessWidget {
   final double proteinG;
   final double carbsG;
   final double fatG;
+  final double totalCost;
+  final double avgCostPerDay;
 
   const _NutritionSummaryRow({
     required this.totalCalories,
@@ -108,18 +112,41 @@ class _NutritionSummaryRow extends StatelessWidget {
     required this.proteinG,
     required this.carbsG,
     required this.fatG,
+    required this.totalCost,
+    required this.avgCostPerDay,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
+    return Column(
       children: [
-        _StatChip(label: 'Total cal', value: totalCalories.toStringAsFixed(0)),
-        _StatChip(label: 'Avg/day', value: avgCaloriesPerDay.toStringAsFixed(0)),
-        _StatChip(label: 'Protein', value: '${proteinG.toStringAsFixed(0)}g'),
-        _StatChip(label: 'Carbs', value: '${carbsG.toStringAsFixed(0)}g'),
-        _StatChip(label: 'Fat', value: '${fatG.toStringAsFixed(0)}g'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _StatChip(label: 'Total cal', value: totalCalories.toStringAsFixed(0)),
+            _StatChip(label: 'Avg/day', value: avgCaloriesPerDay.toStringAsFixed(0)),
+            _StatChip(label: 'Protein', value: '${proteinG.toStringAsFixed(0)}g'),
+            _StatChip(label: 'Carbs', value: '${carbsG.toStringAsFixed(0)}g'),
+            _StatChip(label: 'Fat', value: '${fatG.toStringAsFixed(0)}g'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _StatChip(
+              label: 'Total spent',
+              value: '\$${totalCost.toStringAsFixed(2)}',
+              color: Colors.green[700],
+            ),
+            const SizedBox(width: 32),
+            _StatChip(
+              label: 'Avg cost/day',
+              value: '\$${avgCostPerDay.toStringAsFixed(2)}',
+              color: Colors.green[700],
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -128,8 +155,9 @@ class _NutritionSummaryRow extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final String label;
   final String value;
+  final Color? color;
 
-  const _StatChip({required this.label, required this.value});
+  const _StatChip({required this.label, required this.value, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +167,7 @@ class _StatChip extends StatelessWidget {
             style: Theme.of(context)
                 .textTheme
                 .titleSmall
-                ?.copyWith(fontWeight: FontWeight.bold)),
+                ?.copyWith(fontWeight: FontWeight.bold, color: color)),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
