@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/models/app_result.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/user_preferences_model.dart';
 import '../services/preferences_service.dart';
 
@@ -15,7 +15,7 @@ final preferencesServiceProvider =
 /// Throws when authentication is missing or a network error occurs.
 final userPreferencesProvider =
     FutureProvider<UserPreferences?>((ref) async {
-  final user = Supabase.instance.client.auth.currentUser;
+  final user = ref.read(authServiceProvider).currentUser;
   if (user == null) return null;
 
   final result =

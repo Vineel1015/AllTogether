@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/models/app_result.dart';
 import '../../../core/utils/string_utils.dart';
 import '../../../core/widgets/loading_indicator.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/user_preferences_model.dart';
 import '../providers/preferences_provider.dart';
 import '../widgets/allergy_selector.dart';
@@ -140,7 +140,7 @@ class _PrefsSheetState extends ConsumerState<_PrefsSheet> {
   }
 
   Future<void> _save() async {
-    final user = Supabase.instance.client.auth.currentUser;
+    final user = ref.read(authServiceProvider).currentUser;
     if (user == null) return;
 
     setState(() {

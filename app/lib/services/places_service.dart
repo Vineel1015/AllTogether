@@ -1,23 +1,24 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/constants/api_constants.dart';
 import '../core/models/app_result.dart';
 import '../core/utils/cache_utils.dart';
 import '../features/finder/models/store_result_model.dart';
 
-/// Fetches nearby grocery stores from the Google Places Nearby Search API.
+/// Fetches nearby grocery stores via the `get-nearby-stores` Supabase Edge
+/// Function, which calls the Google Places API server-side.
 ///
 /// Results are cached in the `places_cache` Hive box for 24 hours, keyed by
 /// rounded coordinates (3 d.p. ≈ 111 m precision) + radius.
 class PlacesService {
-  final http.Client _client;
+  final SupabaseClient _supabase;
 
-  PlacesService({http.Client? client}) : _client = client ?? http.Client();
+  PlacesService({SupabaseClient? supabase})
+      : _supabase = supabase ?? Supabase.instance.client;
 
   static const _cacheTtl = Duration(hours: 24);
   static const _defaultRadius = 5000;
@@ -26,7 +27,8 @@ class PlacesService {
 
   /// Returns up to 20 grocery stores within [radiusMeters] of [lat]/[lng].
   ///
-  /// Uses the 24-hour Hive cache first; falls back to the API when stale/missing.
+  /// Uses the 24-hour Hive cache first; falls back to the Edge Function when
+  /// stale or missing.
   Future<AppResult<List<StoreResult>>> getNearbyStores({
     required double lat,
     required double lng,
@@ -47,7 +49,7 @@ class PlacesService {
       return AppSuccess(cached);
     }
 
-    // 2. Fetch from Google Places
+    // 2. Fetch via Edge Function
     return _fetchOnce(lat: lat, lng: lng, radius: radiusMeters, cacheKey: cacheKey, box: box);
   }
 
@@ -60,83 +62,91 @@ class PlacesService {
     required String cacheKey,
     required Box<String> box,
   }) async {
-    final uri = Uri.parse(
-      '${ApiConstants.googlePlacesBaseUrl}/nearbysearch/json',
-    ).replace(queryParameters: {
-      'location': '${lat.toStringAsFixed(6)},${lng.toStringAsFixed(6)}',
-      'radius': '$radius',
-      'type': 'grocery_or_supermarket',
-      'key': ApiConstants.googlePlacesApiKey,
-    });
-
     try {
-      final response = await _client.get(uri);
+      final response = await _supabase.functions.invoke(
+        ApiConstants.nearbyStoresEdgeFunction,
+        body: {
+          'lat': lat,
+          'lng': lng,
+          'radius': radius,
+        },
+      );
 
-      if (response.statusCode != 200) {
-        return AppFailure(
-          'HTTP ${response.statusCode}',
-          code: '${response.statusCode}',
-          isRetryable: response.statusCode >= 500,
+      // functions.invoke throws FunctionException on non-2xx; if data is null
+      // something unexpected happened.
+      final data = response.data;
+      if (data == null) {
+        return const AppFailure(
+          'Empty response from nearby stores service.',
+          code: 'places_error',
         );
       }
 
-      return _parseResponse(response.body, cacheKey, box);
+      // The Edge Function forwards the raw Places API response body.
+      final json = data is String
+          ? jsonDecode(data) as Map<String, dynamic>
+          : data as Map<String, dynamic>;
+
+      return _parseResponse(json, cacheKey, box);
+    } on FunctionException catch (e) {
+      final status = e.status;
+      debugPrint('[PlacesService] FunctionException: status=$status details=${e.details}');
+      return AppFailure(
+        'Nearby stores service error ($status).',
+        code: '$status',
+        isRetryable: status >= 500,
+      );
     } on Exception catch (e) {
       return AppFailure('Unexpected error: $e');
     }
   }
 
   AppResult<List<StoreResult>> _parseResponse(
-    String body,
+    Map<String, dynamic> json,
     String cacheKey,
     Box<String> box,
   ) {
-    try {
-      final json = jsonDecode(body) as Map<String, dynamic>;
-      final status = json['status'] as String? ?? '';
+    final status = json['status'] as String? ?? '';
 
-      switch (status) {
-        case 'OK':
-          final results = (json['results'] as List)
-              .cast<Map<String, dynamic>>()
-              .map(StoreResult.fromPlacesJson)
-              .toList();
-          // Cache asynchronously — don't block the return.
-          setCache<List<StoreResult>>(
-            box,
-            cacheKey,
-            results,
-            _listToJson,
-            _cacheTtl,
-          );
-          debugPrint(
-              '[PlacesService] Fetched ${results.length} stores, cached as $cacheKey');
-          return AppSuccess(results);
+    switch (status) {
+      case 'OK':
+        final results = (json['results'] as List)
+            .cast<Map<String, dynamic>>()
+            .map(StoreResult.fromPlacesJson)
+            .toList();
+        // Cache asynchronously — don't block the return.
+        setCache<List<StoreResult>>(
+          box,
+          cacheKey,
+          results,
+          _listToJson,
+          _cacheTtl,
+        );
+        debugPrint(
+            '[PlacesService] Fetched ${results.length} stores, cached as $cacheKey');
+        return AppSuccess(results);
 
-        case 'ZERO_RESULTS':
-          return const AppSuccess([]);
+      case 'ZERO_RESULTS':
+        return const AppSuccess([]);
 
-        case 'OVER_QUERY_LIMIT':
-          return const AppFailure(
-            'Places API rate limit exceeded.',
-            code: '429',
-            isRetryable: true,
-          );
+      case 'OVER_QUERY_LIMIT':
+        return const AppFailure(
+          'Places API rate limit exceeded.',
+          code: '429',
+          isRetryable: true,
+        );
 
-        case 'REQUEST_DENIED':
-          return const AppFailure(
-            'Places API key invalid or not enabled.',
-            code: 'request_denied',
-          );
+      case 'REQUEST_DENIED':
+        return const AppFailure(
+          'Places API key invalid or not enabled.',
+          code: 'request_denied',
+        );
 
-        default:
-          return AppFailure(
-            'Places API error: $status',
-            code: 'places_error',
-          );
-      }
-    } catch (e) {
-      return AppFailure('Failed to parse Places response: $e');
+      default:
+        return AppFailure(
+          'Places API error: $status',
+          code: 'places_error',
+        );
     }
   }
 

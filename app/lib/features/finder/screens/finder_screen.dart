@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/loading_indicator.dart';
 import '../models/meal_model.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../providers/stores_provider.dart';
 import '../providers/weekly_plan_provider.dart';
 import '../widgets/meal_picker_sheet.dart';
@@ -71,6 +72,12 @@ class _ErrorBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Extract error code from Exception('[code] message') format.
+    final raw = error.toString().replaceFirst('Exception: ', '');
+    final codeMatch = RegExp(r'^\[([^\]]+)\]').firstMatch(raw);
+    final code = codeMatch?.group(1);
+    final is401 = code == '401' || code == 'JWT expired';
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -81,15 +88,19 @@ class _ErrorBody extends StatelessWidget {
                 size: 48, color: Theme.of(context).colorScheme.error),
             const SizedBox(height: 16),
             Text(
-              'Could not load your meal plan.',
+              is401
+                  ? 'Your session has expired. Please sign in again.'
+                  : 'Could not load your meal plan.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
-              onPressed: () => ref.invalidate(weeklyPlanNotifierProvider),
+              icon: Icon(is401 ? Icons.login : Icons.refresh),
+              label: Text(is401 ? 'Sign In' : 'Try Again'),
+              onPressed: is401
+                  ? () => ref.read(authServiceProvider).signOut()
+                  : () => ref.invalidate(weeklyPlanNotifierProvider),
             ),
           ],
         ),
