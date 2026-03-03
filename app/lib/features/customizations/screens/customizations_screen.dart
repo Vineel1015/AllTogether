@@ -123,7 +123,10 @@ class _CustomizationsScreenState extends ConsumerState<CustomizationsScreen> {
           ? null
           : AppBar(title: const Text('Your Preferences')),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,26 +268,25 @@ class _CustomizationsScreenState extends ConsumerState<CustomizationsScreen> {
                 ),
 
               // ── Save Button ────────────────────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                child: _isLoading
-                    ? const LoadingIndicator()
-                    : FilledButton(
-                        onPressed: _save,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          child: Text(
-                            widget.isOnboarding ? 'Get Started' : 'Save',
-                          ),
-                        ),
+              _isLoading
+                  ? const LoadingIndicator()
+                  : FilledButton(
+                      onPressed: _save,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(0),
                       ),
-              ),
+                      child: Text(
+                        widget.isOnboarding ? 'Get Started' : 'Save',
+                      ),
+                    ),
               const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _sectionLabel(BuildContext context, String text) {

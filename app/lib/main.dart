@@ -50,6 +50,58 @@ class AllTogetherApp extends StatelessWidget {
         colorSchemeSeed: Colors.green,
         useMaterial3: true,
         fontFamily: 'AlteHaasGrotesk',
+
+        // ── Buttons ──────────────────────────────────────────────────────────
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            textStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          ),
+        ),
+
+        // ── Cards ─────────────────────────────────────────────────────────────
+        cardTheme: const CardThemeData(
+          elevation: 0,
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ),
+
+        // ── Inputs ────────────────────────────────────────────────────────────
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+        ),
+
+        // ── AppBar ────────────────────────────────────────────────────────────
+        appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 1,
+          centerTitle: false,
+        ),
       ),
       home: const AuthWrapper(),
     );
