@@ -125,10 +125,23 @@
 
 ## Known Issues / Next Steps
 
-- Google OAuth on GitHub Pages requires:
-  - Supabase redirect URL whitelist: `https://vineel1015.github.io/AllTogether/`
-  - Google Cloud Console: `https://bzdmmdfodffcnwruygma.supabase.co/auth/v1/callback` in Authorized Redirect URIs
-  - OAuth consent screen must be published or test email added
-- iOS testing blocked: Xcode not installed
-- `stores_provider` fetches live location — requires browser location permission
-- `gemini_service.dart:66` has 2 pre-existing analyzer warnings (not introduced this session)
+### Broken / Not Working
+- **Google OAuth on web** — Supabase redirect URL whitelist needs `https://vineel1015.github.io/AllTogether/`; Google Cloud Console needs `https://bzdmmdfodffcnwruygma.supabase.co/auth/v1/callback` in Authorized Redirect URIs; OAuth consent screen must be published or test email added
+- **GitHub Pages may 404** — Pages source must be set to "GitHub Actions" in repo Settings → Pages
+- **Meal plan generation** — `CLAUDE_API_KEY` lives on Supabase Edge Function; Edge Function `generate-meal-plan` must be deployed to Supabase for meal plans to work
+
+### Missing Features / Incomplete
+- **No Settings tab** — no way to edit preferences after onboarding except direct navigation
+- **No sign-out button** — users have no way to log out from the app UI
+- **Nearby stores strip empty** — requires `GOOGLE_PLACES_API_KEY` set + browser location permission granted
+- **Analytics shows no data** — depends on receipts existing; Open Food Facts nutrition lookup may return no matches for dummy data item names
+- **Receipt scanning web** — disabled on web by design (mobile only)
+
+### Polish / UX
+- **Browser tab title** shows "all_together" — should be "AllTogether" (`web/index.html` title field)
+- **No empty state for Finder tab** — if meal plan fails, shows error with no friendly fallback
+- **No password reset UI** — `AuthService.sendPasswordReset()` exists but no screen for it
+- **iOS testing blocked** — Xcode not installed; install from App Store then run `sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer && sudo xcodebuild -runFirstLaunch`
+
+### Pre-existing Analyzer Warnings
+- `gemini_service.dart:66` — 2 warnings (`unnecessary_type_check`, `unnecessary_cast`); not introduced this session
