@@ -9,9 +9,10 @@ import '../features/settings/screens/settings_screen.dart';
 import '../features/finder/providers/finder_tab_provider.dart';
 import '../features/video_recipe/screens/video_recipe_screen.dart';
 import '../features/history/screens/history_screen.dart';
+import '../features/recipe_scraper/screens/recipe_scraper_screen.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { discovery, social, videoRecipe, finder, history, analytics, settings }
+enum AppTab { discovery, social, videoRecipe, recipeScraper, finder, history, analytics, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -102,6 +103,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       AppTab.discovery => Icons.explore_outlined,
       AppTab.social => Icons.people_outline,
       AppTab.videoRecipe => Icons.video_library_outlined,
+      AppTab.recipeScraper => Icons.language_outlined,
       AppTab.finder => Icons.restaurant_menu_outlined,
       AppTab.history => Icons.receipt_long_outlined,
       AppTab.analytics => Icons.bar_chart_outlined,
@@ -111,6 +113,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       AppTab.discovery => Icons.explore,
       AppTab.social => Icons.people,
       AppTab.videoRecipe => Icons.video_library,
+      AppTab.recipeScraper => Icons.language,
       AppTab.finder => Icons.restaurant_menu,
       AppTab.history => Icons.receipt_long,
       AppTab.analytics => Icons.bar_chart,
@@ -182,6 +185,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
               isSelected: _currentTab == AppTab.analytics,
             ),
             _buildSidebarItem(
+              Icons.language_outlined,
+              'Scrape Recipe',
+              onTap: () => setState(() => _currentTab = AppTab.recipeScraper),
+              isSelected: _currentTab == AppTab.recipeScraper,
+            ),
+            _buildSidebarItem(
               Icons.people_outline,
               'Following',
               onTap: () => setState(() => _currentTab = AppTab.social),
@@ -241,6 +250,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
       AppTab.discovery => const DiscoveryScreen(),
       AppTab.social => const SocialFeedScreen(),
       AppTab.videoRecipe => const VideoRecipeScreen(),
+      AppTab.recipeScraper => const RecipeScraperScreen(),
       AppTab.finder => const FinderScreen(),
       AppTab.history => const HistoryScreen(),
       AppTab.analytics => const AnalyticsScreen(),
