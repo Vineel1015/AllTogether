@@ -116,7 +116,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colors.primary,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

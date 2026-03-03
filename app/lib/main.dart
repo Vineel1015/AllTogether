@@ -47,7 +47,19 @@ class AllTogetherApp extends StatelessWidget {
       title: 'AllTogether',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4C0089), // Dark Blue
+          primary: const Color(0xFF4C0089),   // Dark Blue → FilledButton bg
+          onPrimary: Colors.white,
+          primaryContainer: const Color(0xFFB0CE6F), // June Bud → banners/chips
+          onPrimaryContainer: const Color(0xFF1A003D),
+          secondary: const Color(0xFFB0CE6F), // June Bud
+          onSecondary: const Color(0xFF1A003D),
+          surface: Colors.white,
+          error: const Color(0xFFFF5E33),     // Portland Orange → errors
+          onError: Colors.white,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFEFE8D3), // White Chocolate
         useMaterial3: true,
         fontFamily: 'AlteHaasGrotesk',
 
