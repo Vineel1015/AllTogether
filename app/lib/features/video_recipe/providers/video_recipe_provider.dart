@@ -1,5 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/models/app_result.dart';
 import '../models/video_recipe_model.dart';
+import '../services/video_recipe_service.dart';
+
+final videoRecipeServiceProvider = Provider<VideoRecipeService>((ref) {
+  return VideoRecipeService();
+});
 
 class VideoRecipeNotifier extends AsyncNotifier<List<VideoRecipe>> {
   @override
@@ -10,23 +16,16 @@ class VideoRecipeNotifier extends AsyncNotifier<List<VideoRecipe>> {
 
   Future<void> processVideo(String videoUrl) async {
     state = const AsyncValue.loading();
-    try {
-      // 1. Upload video (placeholder)
-      // 2. Call AI/ML Service (placeholder)
-      // 3. Extract Text, Ingredients, and Steps (placeholder)
-      
-      final newRecipe = VideoRecipe(
-        videoUrl: videoUrl,
-        title: 'Extracted Recipe from Video',
-        ingredients: ['Example Ingredient 1', 'Example Ingredient 2'],
-        steps: ['Step 1: Prep', 'Step 2: Cook'],
-        createdAt: DateTime.now(),
-      );
-      
-      final currentList = state.valueOrNull ?? [];
-      state = AsyncValue.data([...currentList, newRecipe]);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+    
+    final service = ref.read(videoRecipeServiceProvider);
+    final result = await service.extractRecipeFromVideo(videoUrl);
+
+    switch (result) {
+      case AppSuccess(:final data):
+        final currentList = state.valueOrNull ?? [];
+        state = AsyncValue.data([...currentList, data]);
+      case AppFailure(:final message):
+        state = AsyncValue.error(message, StackTrace.current);
     }
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/video_recipe_provider.dart';
 import '../models/video_recipe_model.dart';
+import '../../finder/providers/weekly_plan_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class VideoRecipeScreen extends ConsumerStatefulWidget {
   const VideoRecipeScreen({super.key});
@@ -59,7 +61,7 @@ class _VideoRecipeScreenState extends ConsumerState<VideoRecipeScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Enter a video URL (TikTok, Instagram, etc.) or upload a video file to automatically extract ingredients and steps.',
+                      'Enter a video URL (TikTok, Instagram, YouTube) to automatically extract ingredients and steps using Gemini AI.',
                       style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
@@ -81,7 +83,7 @@ class _VideoRecipeScreenState extends ConsumerState<VideoRecipeScreen> {
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.auto_awesome),
-                      label: Text(_isProcessing ? 'Processing Video...' : 'Extract Recipe'),
+                      label: Text(_isProcessing ? 'AI is analyzing video...' : 'Extract Recipe with Gemini'),
                     ),
                   ],
                 ),
@@ -92,10 +94,13 @@ class _VideoRecipeScreenState extends ConsumerState<VideoRecipeScreen> {
           Expanded(
             child: videoRecipesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Text('Error: $e', textAlign: TextAlign.center, style: const TextStyle(color: Colors.red)),
+              )),
               data: (recipes) => recipes.isEmpty
                   ? const Center(
-                      child: Text('No extracted recipes yet. Start by uploading a video!'),
+                      child: Text('No extracted recipes yet. Start by entering a video URL!'),
                     )
                   : ListView.builder(
                       itemCount: recipes.length,
@@ -109,13 +114,13 @@ class _VideoRecipeScreenState extends ConsumerState<VideoRecipeScreen> {
   }
 }
 
-class _RecipeCard extends StatelessWidget {
+class _RecipeCard extends ConsumerWidget {
   final VideoRecipe recipe;
 
   const _RecipeCard({required this.recipe});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ExpansionTile(
@@ -127,6 +132,19 @@ class _RecipeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (recipe.extractedText.isNotEmpty) ...[
+                  const Text('Video Captions/Text', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    children: recipe.extractedText.map((text) => Chip(
+                      label: Text(text, style: const TextStyle(fontSize: 10)),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 const Text('Ingredients', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 ...recipe.ingredients.map((ing) => Padding(
@@ -135,7 +153,7 @@ class _RecipeCard extends StatelessWidget {
                     children: [
                       const Icon(Icons.check_circle_outline, size: 16, color: Colors.green),
                       const SizedBox(width: 8),
-                      Text(ing),
+                      Expanded(child: Text(ing)),
                     ],
                   ),
                 )),
@@ -148,8 +166,18 @@ class _RecipeCard extends StatelessWidget {
                 )),
                 const SizedBox(height: 16),
                 FilledButton.icon(
-                  onPressed: () {
-                    // Placeholder for adding to My Meals and Shopping List
+                  onPressed: () async {
+                    final userId = ref.read(authServiceProvider).currentUser?.id;
+                    if (userId == null) return;
+                    
+                    final meal = recipe.toMeal(userId);
+                    await ref.read(weeklyPlanNotifierProvider.notifier).addMeal(meal);
+                    
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Added to My Meals & Shopping List!')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.add_shopping_cart),
                   label: const Text('Add to My Meals & Shopping List'),
