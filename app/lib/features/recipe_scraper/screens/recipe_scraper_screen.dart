@@ -150,7 +150,7 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
     final scoringService = MealScoringService();
     // Convert recipe to a meal for scoring
     final dummyMeal = recipe.toMeal('temp');
-    final score = scoringService.computeScore(dummyMeal);
+    final score = scoringService.scoreMeal(dummyMeal);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,7 +181,7 @@ class _RecipeScraperScreenState extends ConsumerState<RecipeScraperScreen> {
                       ],
                     ),
                   ),
-                  _buildScoreBadge(score.grade, score.color),
+                  _buildScoreBadge(score.grade, score.gradeColor(Theme.of(context).colorScheme)),
                 ],
               ),
               const Divider(height: 32),

@@ -10,6 +10,10 @@ import '../features/finder/providers/finder_tab_provider.dart';
 import '../features/video_recipe/screens/video_recipe_screen.dart';
 import '../features/history/screens/history_screen.dart';
 import '../features/recipe_scraper/screens/recipe_scraper_screen.dart';
+import '../features/finder/models/meal_model.dart';
+import '../features/auth/providers/auth_provider.dart';
+import '../features/social/models/post_model.dart';
+import '../features/social/providers/social_provider.dart';
 
 /// Tab indices used by [AppScaffold].
 enum AppTab { potluck, huntAndGather, whatsCookin, kaleculations, settings }
