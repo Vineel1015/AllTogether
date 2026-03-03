@@ -86,6 +86,19 @@ class AuthService {
     }
   }
 
+  // ── Refresh Session ───────────────────────────────────────────────────────
+
+  Future<AppResult<Session?>> refreshSession() async {
+    try {
+      final response = await _supabase.auth.refreshSession();
+      return AppSuccess(response.session);
+    } on AuthException catch (e) {
+      return AppFailure(e.message, code: 'auth_error');
+    } catch (e) {
+      return AppFailure('Unexpected error: $e');
+    }
+  }
+
   // ── Google OAuth ──────────────────────────────────────────────────────────
 
   Future<AppResult<void>> signInWithGoogle() async {

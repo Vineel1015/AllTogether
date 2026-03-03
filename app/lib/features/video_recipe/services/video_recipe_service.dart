@@ -10,7 +10,7 @@ class VideoRecipeService {
       : _supabase = supabase ?? Supabase.instance.client;
 
   /// Sends a video URL or metadata to the AI processing service.
-  Future<AppResult<VideoRecipe>> extractRecipeFromVideo(String videoUrl) async {
+  Future<AppResult<VideoRecipe>> extractRecipeFromVideo(String videoUrl, {bool isRetry = false}) async {
     try {
       final response = await _supabase.functions.invoke(
         'process-video-recipe',
@@ -37,6 +37,18 @@ class VideoRecipeService {
         createdAt: DateTime.now(),
       ));
     } on FunctionException catch (e) {
+      final errorStr = e.details?.toString() ?? '';
+      final is401 = e.status == 401 || errorStr.contains('401') || errorStr.contains('JWT');
+      
+      if (is401 && !isRetry) {
+        // Try to refresh session once
+        final refreshResult = await _supabase.auth.refreshSession();
+        if (refreshResult.session != null) {
+          // Retry the request with the new session
+          return extractRecipeFromVideo(videoUrl, isRetry: true);
+        }
+      }
+      
       return AppFailure('AI Processing Error: ${e.details ?? 'Unknown function error'}', code: e.status.toString());
     } catch (e) {
       return AppFailure('Unexpected error: $e');
