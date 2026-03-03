@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/meal_model.dart';
+import '../../../core/constants/brand_colors.dart';
 
 class MealCardDeck extends StatefulWidget {
   final List<Meal> meals;
@@ -18,138 +19,244 @@ class MealCardDeck extends StatefulWidget {
   State<MealCardDeck> createState() => _MealCardDeckState();
 }
 
-class _MealCardDeckState extends State<MealCardDeck> {
-  final Set<int> _selectedIndices = {};
-  final Set<int> _flippedIndices = {};
+class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMixin {
+  final List<Meal> _selectedMeals = [];
+  final Set<String> _dealtMealIds = {};
+  String? _hoveredMealId;
+  bool _isShuffling = false;
 
-  void _onCardTap(int index) {
-    if (_selectedIndices.contains(index)) return;
-    if (_selectedIndices.length >= widget.maxSelections) return;
+  @override
+  void initState() {
+    super.initState();
+    _triggerShuffle();
+  }
 
-    setState(() {
-      _flippedIndices.add(index);
-      _selectedIndices.add(index);
+  void _triggerShuffle() {
+    setState(() => _isShuffling = true);
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) setState(() => _isShuffling = false);
     });
+  }
 
-    if (_selectedIndices.length == widget.maxSelections) {
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        widget.onSelectionComplete(
-          _selectedIndices.map((i) => widget.meals[i]).toList(),
-        );
+  void _selectMeal(Meal meal) {
+    if (_selectedMeals.length < widget.maxSelections && !_dealtMealIds.contains(meal.id)) {
+      setState(() {
+        _selectedMeals.add(meal);
+        _dealtMealIds.add(meal.id);
       });
     }
   }
 
+  void _unselectMeal(Meal meal) {
+    setState(() {
+      _selectedMeals.removeWhere((m) => m.id == meal.id);
+      _dealtMealIds.remove(meal.id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Pick ${widget.maxSelections - _selectedIndices.length} more meals!',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
+    final availableMeals = widget.meals.where((m) => !_dealtMealIds.contains(m.id)).toList();
+
+    return Column(
+      children: [
+        // Hand / Selection Area
+        Container(
+          height: 120,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ..._selectedMeals.map((meal) => _SelectedCard(
+                meal: meal, 
+                onTap: () => _unselectMeal(meal)
+              )),
+              // Placeholders
+              ...List.generate(widget.maxSelections - _selectedMeals.length, (i) => _EmptySlot()),
+            ],
           ),
-          const SizedBox(height: 40),
-          SizedBox(
-            height: 400,
-            width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              children: List.generate(widget.meals.length, (index) {
-                final isFlipped = _flippedIndices.contains(index);
-                final angle = (index - widget.meals.length / 2) * 0.15;
-                
-                return AnimatedPositioned(
-                  duration: const Duration(milliseconds: 500),
-                  curve: Curves.easeOut,
-                  left: isFlipped ? (MediaQuery.of(context).size.width / 2 - 80) : null,
-                  top: isFlipped ? 50 : null,
-                  child: Transform.rotate(
-                    angle: isFlipped ? 0 : angle,
-                    child: _DeckCard(
-                      meal: widget.meals[index],
-                      isFlipped: isFlipped,
-                      onTap: () => _onCardTap(index),
-                    ),
-                  ),
-                );
-              }),
+        ),
+        
+        if (_selectedMeals.length == widget.maxSelections)
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+              onPressed: () => widget.onSelectionComplete(_selectedMeals),
+              child: const Text('Confirm Selections'),
             ),
           ),
-        ],
+
+        const Spacer(),
+        
+        // Magician Deck Area
+        SizedBox(
+          height: 400,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              if (!_isShuffling)
+                ...List.generate(availableMeals.length, (index) {
+                  final meal = availableMeals[index];
+                  final total = availableMeals.length;
+                  final angle = (index - total / 2) * (pi / 12); // Arc spread
+                  final radius = 300.0;
+                  
+                  return _DraggableCard(
+                    meal: meal,
+                    angle: angle,
+                    radius: radius,
+                    isHovered: _hoveredMealId == meal.id,
+                    onHover: (hovering) {
+                      setState(() => _hoveredMealId = hovering ? meal.id : null);
+                    },
+                    onSelected: () => _selectMeal(meal),
+                  );
+                }),
+              if (_isShuffling)
+                const Center(child: CircularProgressIndicator(color: AllTogetherColors.mascotOrange)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+}
+
+class _DraggableCard extends StatelessWidget {
+  final Meal meal;
+  final double angle;
+  final double radius;
+  final bool isHovered;
+  final Function(bool) onHover;
+  final VoidCallback onSelected;
+
+  const _DraggableCard({
+    required this.meal,
+    required this.angle,
+    required this.radius,
+    required this.isHovered,
+    required this.onHover,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final x = sin(angle) * radius;
+    final y = -cos(angle) * radius + radius;
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 200),
+      bottom: isHovered ? y + 40 : y,
+      left: MediaQuery.of(context).size.width / 2 + x - 60,
+      child: Transform.rotate(
+        angle: angle,
+        child: MouseRegion(
+          onEnter: (_) => onHover(true),
+          onExit: (_) => onHover(false),
+          child: Draggable<Meal>(
+            data: meal,
+            feedback: Material(
+              color: Colors.transparent,
+              child: _CardBack(meal: meal, isFaceUp: true),
+            ),
+            childWhenDragging: const SizedBox.shrink(),
+            onDragEnd: (details) {
+              // If dragged high enough, select it
+              if (details.offset.dy < 300) {
+                onSelected();
+              }
+            },
+            child: _CardBack(meal: meal, isFaceUp: false),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _DeckCard extends StatelessWidget {
+class _CardBack extends StatelessWidget {
   final Meal meal;
-  final bool isFlipped;
-  final VoidCallback onTap;
-
-  const _DeckCard({
-    required this.meal,
-    required this.isFlipped,
-    required this.onTap,
-  });
+  final bool isFaceUp;
+  const _CardBack({required this.meal, this.isFaceUp = false});
 
   @override
   Widget build(BuildContext context) {
+    final color = AllTogetherColors.getMealColor(meal.id); // Determine by ID prefix or type
+    
+    return Container(
+      width: 120,
+      height: 180,
+      decoration: BoxDecoration(
+        color: isFaceUp ? Colors.white : color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8, offset: const Offset(0, 4))],
+      ),
+      child: isFaceUp 
+        ? Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.restaurant, color: color, size: 30),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(meal.name, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+            ],
+          )
+        : Center(
+            child: Text('AT', style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 32, fontWeight: FontWeight.w900)),
+          ),
+    );
+  }
+}
+
+class _SelectedCard extends StatelessWidget {
+  final Meal meal;
+  final VoidCallback onTap;
+  const _SelectedCard({required this.meal, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AllTogetherColors.getMealColor(meal.id);
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        width: 160,
-        height: 240,
+      child: Container(
+        width: 60,
+        height: 90,
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
-          color: isFlipped ? Colors.white : Colors.green[800],
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
-            ),
-          ],
-          border: Border.all(color: Colors.white, width: 4),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color, width: 2),
         ),
-        child: isFlipped
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.restaurant, color: Colors.green, size: 40),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      meal.name,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('${meal.calories} kcal', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              )
-            : Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.star, color: Colors.white, size: 40),
-                    const SizedBox(height: 8),
-                    Text(
-                      'AT',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
-                        fontWeight: FontWeight.w900,
-                        fontSize: 24,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.restaurant, size: 16, color: color),
+            const SizedBox(height: 4),
+            Text(meal.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _EmptySlot extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      height: 90,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 2)),
+      ),
+      child: const Center(child: Icon(Icons.add, color: Colors.grey, size: 20)),
     );
   }
 }

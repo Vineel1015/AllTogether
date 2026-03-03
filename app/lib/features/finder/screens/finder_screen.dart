@@ -13,6 +13,8 @@ import '../providers/stores_provider.dart';
 import '../providers/weekly_plan_provider.dart';
 import '../widgets/create_meal_sheet.dart';
 import '../widgets/meal_card_deck.dart';
+import '../../../shared/mascot_widget.dart';
+import '../../../core/constants/brand_colors.dart';
 
 enum FinderPhase { picking, theHaul }
 
@@ -26,6 +28,17 @@ class FinderScreen extends ConsumerStatefulWidget {
 
 class _FinderScreenState extends ConsumerState<FinderScreen> {
   FinderPhase _phase = FinderPhase.picking;
+  final Set<String> _activeFilters = {'breakfast', 'lunch', 'dinner', 'snacks'};
+
+  void _toggleFilter(String filter) {
+    setState(() {
+      if (_activeFilters.contains(filter)) {
+        if (_activeFilters.length > 1) _activeFilters.remove(filter);
+      } else {
+        _activeFilters.add(filter);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +46,13 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_phase == FinderPhase.picking ? "What's Cookin?" : "The Haul"),
+        title: Row(
+          children: [
+            const MascotWidget(size: 40),
+            const SizedBox(width: 8),
+            Text(_phase == FinderPhase.picking ? "What's Cookin?" : "The Haul"),
+          ],
+        ),
         actions: [
           if (_phase == FinderPhase.theHaul)
             TextButton.icon(
@@ -48,11 +67,52 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
         error: (error, _) => _ErrorBody(error: error, ref: ref),
         data: (plan) {
           if (_phase == FinderPhase.picking) {
-            return _buildPickingPhase();
+            return Column(
+              children: [
+                _buildFilters(),
+                Expanded(child: _buildPickingPhase()),
+              ],
+            );
           } else {
             return _TheHaulView(items: plan?.shoppingList ?? const []);
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _FilterChip(
+            label: 'Breakfast',
+            isActive: _activeFilters.contains('breakfast'),
+            color: AllTogetherColors.breakfastBrown,
+            onTap: () => _toggleFilter('breakfast'),
+          ),
+          _FilterChip(
+            label: 'Lunch',
+            isActive: _activeFilters.contains('lunch'),
+            color: AllTogetherColors.lunchBlue,
+            onTap: () => _toggleFilter('lunch'),
+          ),
+          _FilterChip(
+            label: 'Dinner',
+            isActive: _activeFilters.contains('dinner'),
+            color: AllTogetherColors.dinnerOrange,
+            onTap: () => _toggleFilter('dinner'),
+          ),
+          _FilterChip(
+            label: 'Snacks',
+            isActive: _activeFilters.contains('snacks'),
+            color: AllTogetherColors.snackGreen,
+            onTap: () => _toggleFilter('snacks'),
+          ),
+        ],
       ),
     );
   }
@@ -62,14 +122,23 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
     return userMealsAsync.when(
       data: (userMeals) {
         final allMeals = [...presetMeals, ...userMeals];
-        // Shuffle the deck for randomness
-        final deck = List<Meal>.from(allMeals)..shuffle();
+        // Filter the deck based on selection
+        final filteredDeck = allMeals.where((m) {
+          final id = m.id.toLowerCase();
+          if (id.contains('_b') && _activeFilters.contains('breakfast')) return true;
+          if (id.contains('_l') && _activeFilters.contains('lunch')) return true;
+          if (id.contains('_d') && _activeFilters.contains('dinner')) return true;
+          if (id.contains('_s') && _activeFilters.contains('snacks')) return true;
+          return false;
+        }).toList();
+
+        final deck = List<Meal>.from(filteredDeck)..shuffle();
         
         return MealCardDeck(
-          meals: deck.take(12).toList(), // Show a manageable deck
+          key: ValueKey(_activeFilters.join(',')), // Force rebuild on filter change
+          meals: deck.take(15).toList(),
           maxSelections: 5,
           onSelectionComplete: (selectedMeals) async {
-            // Clear current plan and add new selections
             await ref.read(weeklyPlanNotifierProvider.notifier).clearPlan();
             for (final meal in selectedMeals) {
               await ref.read(weeklyPlanNotifierProvider.notifier).addMeal(meal);
@@ -82,6 +151,35 @@ class _FinderScreenState extends ConsumerState<FinderScreen> {
       },
       loading: () => const LoadingIndicator(),
       error: (e, _) => Center(child: Text('Error loading deck: $e')),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FilterChip({
+    required this.label,
+    required this.isActive,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+      child: ChoiceChip(
+        label: Text(label, style: TextStyle(color: isActive ? Colors.white : color, fontSize: 12, fontWeight: FontWeight.bold)),
+        selected: isActive,
+        onSelected: (_) => onTap(),
+        selectedColor: color,
+        backgroundColor: Colors.white,
+        shape: StadiumBorder(side: BorderSide(color: color)),
+      ),
     );
   }
 }
