@@ -13,6 +13,7 @@ import '../providers/weekly_plan_provider.dart';
 import '../widgets/create_meal_sheet.dart';
 import '../widgets/meal_catalog_card_widget.dart';
 import '../widgets/store_card_widget.dart';
+import '../../recipe_scraper/screens/recipe_scraper_screen.dart';
 
 /// The Finder tab — DoorDash-style meal catalog with an "In Your Plan" strip.
 class FinderScreen extends ConsumerStatefulWidget {
@@ -70,6 +71,18 @@ class _FinderScreenState extends ConsumerState<FinderScreen>
       appBar: AppBar(
         title: const Text('Meal Planner'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            tooltip: 'Scrape from Web',
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (_) => const RecipeScraperScreen(),
+              ).then((_) => ref.invalidate(userMealsProvider));
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.add_circle_outline),
             tooltip: 'Create meal',

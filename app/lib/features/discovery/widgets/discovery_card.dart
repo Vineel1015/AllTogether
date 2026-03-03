@@ -24,58 +24,76 @@ class _DiscoveryCardState extends State<DiscoveryCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        setState(() {
-          _swipePosition += details.delta.dx;
-        });
-      },
-      onHorizontalDragEnd: (details) {
-        if (_swipePosition > 100) {
-          widget.onSwipeRight();
-        } else if (_swipePosition < -100) {
-          widget.onSwipeLeft();
-        }
-        setState(() {
-          _swipePosition = 0;
-        });
-      },
-      onTap: () {
-        setState(() {
-          _viewMode = (_viewMode + 1) % 3;
-        });
-      },
-      child: Transform.translate(
-        offset: Offset(_swipePosition, 0),
-        child: Transform.rotate(
-          angle: _swipePosition / 1000,
-          child: Container(
-            width: 320,
-            height: 480,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: _buildContent(),
-                  ),
-                  _buildBottomBar(),
-                ],
-              ),
-            ),
+    return Draggable<Meal>(
+      data: widget.meal,
+      feedback: Opacity(
+        opacity: 0.8,
+        child: Material(
+          color: Colors.transparent,
+          child: _buildCardContent(),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _buildCardContent(),
+      ),
+      child: GestureDetector(
+        onHorizontalDragUpdate: (details) {
+          setState(() {
+            _swipePosition += details.delta.dx;
+          });
+        },
+        onHorizontalDragEnd: (details) {
+          if (_swipePosition > 100) {
+            widget.onSwipeRight();
+          } else if (_swipePosition < -100) {
+            widget.onSwipeLeft();
+          }
+          setState(() {
+            _swipePosition = 0;
+          });
+        },
+        onTap: () {
+          setState(() {
+            _viewMode = (_viewMode + 1) % 3;
+          });
+        },
+        child: Transform.translate(
+          offset: Offset(_swipePosition, 0),
+          child: Transform.rotate(
+            angle: _swipePosition / 1000,
+            child: _buildCardContent(),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardContent() {
+    return Container(
+      width: 320,
+      height: 480,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildContent(),
+            ),
+            _buildBottomBar(),
+          ],
         ),
       ),
     );
