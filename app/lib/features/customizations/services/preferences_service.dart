@@ -33,23 +33,43 @@ class PreferencesService {
     }
   }
 
-  /// Creates or updates the user's preferences (upsert on `user_id`).
+  /// Creates or updates the user's preferences.
+  ///
+  /// Checks for an existing row first so no UNIQUE constraint on `user_id`
+  /// is required — works even if the schema only has a NOT NULL on `user_id`.
   Future<AppResult<UserPreferences>> savePreferences(
     UserPreferences prefs,
   ) async {
     try {
-      final data = await _supabase
+      // Check whether a row already exists for this user.
+      final existing = await _supabase
           .from('user_preferences')
-          .upsert(prefs.toJson(), onConflict: 'user_id')
-          .select()
-          .order('id', ascending: false) // Fallback order
-          .limit(1)
-          .single();
+          .select('id')
+          .eq('user_id', prefs.userId)
+          .maybeSingle();
+
+      final Map<String, dynamic> data;
+
+      if (existing != null) {
+        // UPDATE the existing row.
+        data = await _supabase
+            .from('user_preferences')
+            .update(prefs.toJson())
+            .eq('user_id', prefs.userId)
+            .select()
+            .single();
+      } else {
+        // INSERT a new row.
+        data = await _supabase
+            .from('user_preferences')
+            .insert(prefs.toJson())
+            .select()
+            .single();
+      }
 
       return AppSuccess(UserPreferences.fromJson(data));
     } on PostgrestException catch (e) {
       return switch (e.code) {
-        '23505' => AppFailure('Preferences already exist.', code: e.code),
         '42501' => AppFailure('Permission denied.', code: e.code),
         _ => AppFailure(e.message, code: e.code, isRetryable: true),
       };
