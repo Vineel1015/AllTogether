@@ -140,6 +140,19 @@ class AuthWrapper extends ConsumerWidget {
   }
 }
 
+/// Plain background shown while the onboarding preferences modal is open.
+///
+/// [CustomizationsScreen] opens the modal automatically; this widget provides
+/// the scaffold underneath it so the navigator is valid.
+class _OnboardingGate extends StatelessWidget {
+  const _OnboardingGate();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CustomizationsScreen(isOnboarding: true);
+  }
+}
+
 /// After login, checks whether preferences exist and routes accordingly.
 class _MainAppRouter extends ConsumerWidget {
   const _MainAppRouter();
@@ -151,7 +164,7 @@ class _MainAppRouter extends ConsumerWidget {
     return prefsAsync.when(
       data: (prefs) => prefs != null
           ? const AppScaffold()
-          : const CustomizationsScreen(isOnboarding: true),
+          : const _OnboardingGate(),
       loading: () => const Scaffold(body: LoadingIndicator()),
       // On error, show the main app and let the user access preferences later.
       error: (_, __) => const AppScaffold(),
