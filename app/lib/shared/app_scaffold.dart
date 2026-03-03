@@ -8,14 +8,13 @@ import '../features/discovery/screens/discovery_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/finder/providers/finder_tab_provider.dart';
 import '../features/history/screens/history_screen.dart';
-import '../features/recipe_scraper/screens/recipe_scraper_screen.dart';
 import '../features/finder/models/meal_model.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/social/models/post_model.dart';
 import '../features/social/providers/social_provider.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { potluck, huntAndGather, whatsCookin, kaleculations, settings }
+enum AppTab { potluck, whatsCookin, kaleculations, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -104,14 +103,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     final isSelected = _currentTab == tab;
     final icon = switch (tab) {
       AppTab.potluck => Icons.groups_outlined,
-      AppTab.huntAndGather => Icons.search_outlined,
       AppTab.whatsCookin => Icons.restaurant_menu_outlined,
       AppTab.kaleculations => Icons.analytics_outlined,
       AppTab.settings => Icons.settings_outlined,
     };
     final selectedIcon = switch (tab) {
       AppTab.potluck => Icons.groups,
-      AppTab.huntAndGather => Icons.search,
       AppTab.whatsCookin => Icons.restaurant_menu,
       AppTab.kaleculations => Icons.analytics,
       AppTab.settings => Icons.settings,
@@ -119,7 +116,6 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
     final label = switch (tab) {
       AppTab.potluck => 'Potluck',
-      AppTab.huntAndGather => 'Hunt & Gather',
       AppTab.whatsCookin => "What's Cookin?",
       AppTab.kaleculations => 'Kale-culations',
       AppTab.settings => 'Settings',
@@ -182,12 +178,6 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
                 setState(() => _currentTab = AppTab.whatsCookin);
               },
               isSelected: _currentTab == AppTab.whatsCookin && currentFinderTab == 0,
-            ),
-            _buildSidebarItem(
-              Icons.search_outlined,
-              'Hunt & Gather',
-              onTap: () => setState(() => _currentTab = AppTab.huntAndGather),
-              isSelected: _currentTab == AppTab.huntAndGather,
             ),
             _buildSidebarItem(
               Icons.eco_outlined,
@@ -253,9 +243,8 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   Widget _buildBody() {
     return switch (_currentTab) {
       AppTab.potluck => const PotluckScreen(),
-      AppTab.huntAndGather => const RecipeScraperScreen(),
-      AppTab.whatsCookin => const FinderScreen(),
-      AppTab.kaleculations => const AnalyticsScreen(),
+      AppTab.whatsCookin => const WhatsCookinScreen(),
+      AppTab.kaleculations => const KaleculationsScreen(),
       AppTab.settings => const SettingsScreen(),
     };
   }
