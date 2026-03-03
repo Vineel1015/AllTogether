@@ -30,10 +30,12 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    final currentFinderTab = ref.watch(finderTabProvider);
+
     return Scaffold(
       body: Row(
         children: [
-          if (_isSidebarVisible) _buildSidebar(),
+          if (_isSidebarVisible) _buildSidebar(currentFinderTab),
           if (_isSidebarVisible)
             GestureDetector(
               onHorizontalDragUpdate: (details) {
@@ -131,63 +133,68 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
     );
   }
 
-  Widget _buildSidebar() {
-    return Container(
-      width: _sidebarWidth,
+  Widget _buildSidebar(int currentFinderTab) {
+    return Material(
       color: Colors.grey[50],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'EXPLORER',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
+      child: Container(
+        width: _sidebarWidth,
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: Colors.grey[200]!)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                'EXPLORER',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
               ),
             ),
-          ),
-          _buildSidebarItem(
-            Icons.shopping_cart_outlined,
-            'Shopping List',
-            onTap: () {
-              ref.read(finderTabProvider.notifier).state = 1;
-              setState(() => _currentTab = AppTab.finder);
-            },
-            isSelected: _currentTab == AppTab.finder && ref.watch(finderTabProvider) == 1,
-          ),
-          _buildSidebarItem(
-            Icons.restaurant_outlined,
-            'My Meals',
-            onTap: () {
-              ref.read(finderTabProvider.notifier).state = 0;
-              setState(() => _currentTab = AppTab.finder);
-            },
-            isSelected: _currentTab == AppTab.finder && ref.watch(finderTabProvider) == 0,
-          ),
-          _buildSidebarItem(
-            Icons.eco_outlined,
-            'Impact Stats',
-            onTap: () => setState(() => _currentTab = AppTab.analytics),
-            isSelected: _currentTab == AppTab.analytics,
-          ),
-          _buildSidebarItem(
-            Icons.people_outline,
-            'Following',
-            onTap: () => setState(() => _currentTab = AppTab.social),
-            isSelected: _currentTab == AppTab.social,
-          ),
-          const Spacer(),
-          _buildSidebarItem(
-            Icons.settings_outlined,
-            'Settings',
-            onTap: () => setState(() => _currentTab = AppTab.settings),
-            isSelected: _currentTab == AppTab.settings,
-          ),
-          const SizedBox(height: 16),
-        ],
+            _buildSidebarItem(
+              Icons.shopping_cart_outlined,
+              'Shopping List',
+              onTap: () {
+                ref.read(finderTabProvider.notifier).state = 1;
+                setState(() => _currentTab = AppTab.finder);
+              },
+              isSelected: _currentTab == AppTab.finder && currentFinderTab == 1,
+            ),
+            _buildSidebarItem(
+              Icons.restaurant_outlined,
+              'My Meals',
+              onTap: () {
+                ref.read(finderTabProvider.notifier).state = 0;
+                setState(() => _currentTab = AppTab.finder);
+              },
+              isSelected: _currentTab == AppTab.finder && currentFinderTab == 0,
+            ),
+            _buildSidebarItem(
+              Icons.eco_outlined,
+              'Impact Stats',
+              onTap: () => setState(() => _currentTab = AppTab.analytics),
+              isSelected: _currentTab == AppTab.analytics,
+            ),
+            _buildSidebarItem(
+              Icons.people_outline,
+              'Following',
+              onTap: () => setState(() => _currentTab = AppTab.social),
+              isSelected: _currentTab == AppTab.social,
+            ),
+            const Spacer(),
+            _buildSidebarItem(
+              Icons.settings_outlined,
+              'Settings',
+              onTap: () => setState(() => _currentTab = AppTab.settings),
+              isSelected: _currentTab == AppTab.settings,
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
