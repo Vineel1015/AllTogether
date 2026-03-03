@@ -135,13 +135,14 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
   }
 
   Widget _buildSidebar(int currentFinderTab) {
-    return Material(
-      color: Colors.grey[50],
-      child: Container(
-        width: _sidebarWidth,
-        decoration: BoxDecoration(
-          border: Border(right: BorderSide(color: Colors.grey[200]!)),
-        ),
+    return Container(
+      width: _sidebarWidth,
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(right: BorderSide(color: Colors.grey[200]!)),
+      ),
+      child: Material(
+        color: Colors.transparent,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -202,20 +203,36 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> {
 
   Widget _buildSidebarItem(IconData icon, String title,
       {required VoidCallback onTap, bool isSelected = false}) {
-    return ListTile(
-      leading: Icon(icon, size: 20, color: isSelected ? Colors.green[700] : null),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.green[700] : null,
+    return InkWell(
+      onTap: () {
+        debugPrint('Sidebar click: $title');
+        onTap();
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        color: isSelected ? Colors.green[50] : Colors.transparent,
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? Colors.green[700] : Colors.grey[700],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? Colors.green[700] : Colors.grey[800],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      dense: true,
-      selected: isSelected,
-      selectedTileColor: Colors.green[50],
-      onTap: onTap,
     );
   }
 
