@@ -20,7 +20,6 @@ class ApiConstants {
   static const climatiqBaseUrl = 'https://api.climatiq.io/data/v1';
 
   // ── Hive box names ────────────────────────────────────────────────────────
-  static const mealPlanCacheBox = 'meal_plan_cache';
   static const mealCatalogCacheBox = 'meal_catalog_cache';
   static const weeklyPlanCacheBox = 'weekly_plan_cache';
   static const foodItemCacheBox = 'food_item_cache';

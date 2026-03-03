@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../constants/api_constants.dart';
+
 /// Wraps a cached value with metadata for TTL expiry.
 class CacheEntry<T> {
   final T data;
@@ -95,13 +97,14 @@ Future<void> evictExpiredEntries(Box<String> box) async {
   await box.deleteAll(keysToDelete);
 }
 
-/// Clears all four cache boxes on logout or account deletion.
+/// Clears all active cache boxes on logout or account deletion.
 Future<void> clearAllCaches() async {
   for (final name in [
-    'meal_plan_cache',
-    'food_item_cache',
-    'places_cache',
-    'climatiq_cache',
+    ApiConstants.mealCatalogCacheBox,
+    ApiConstants.weeklyPlanCacheBox,
+    ApiConstants.foodItemCacheBox,
+    ApiConstants.placesCacheBox,
+    ApiConstants.climatiqCacheBox,
   ]) {
     if (Hive.isBoxOpen(name)) {
       await Hive.box<String>(name).clear();

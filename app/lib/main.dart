@@ -26,7 +26,6 @@ Future<void> main() async {
   // ── Hive local cache ──────────────────────────────────────────────────────
   await Hive.initFlutter();
   await Future.wait([
-    Hive.openBox<String>(ApiConstants.mealPlanCacheBox),
     Hive.openBox<String>(ApiConstants.mealCatalogCacheBox),
     Hive.openBox<String>(ApiConstants.weeklyPlanCacheBox),
     Hive.openBox<String>(ApiConstants.foodItemCacheBox),

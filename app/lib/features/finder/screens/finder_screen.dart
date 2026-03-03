@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/widgets/loading_indicator.dart';
+import '../models/meal_model.dart';
 import '../providers/stores_provider.dart';
 import '../providers/weekly_plan_provider.dart';
 import '../widgets/meal_picker_sheet.dart';
@@ -100,7 +101,7 @@ class _ErrorBody extends StatelessWidget {
 // ── Main plan body ───────────────────────────────────────────────────────────
 
 class _PlanBody extends ConsumerWidget {
-  final List<dynamic> meals;
+  final List<Meal> meals;
   final List<String> shoppingList;
 
   const _PlanBody({required this.meals, required this.shoppingList});
@@ -145,7 +146,7 @@ class _PlanBody extends ConsumerWidget {
 }
 
 class _MealsTab extends ConsumerWidget {
-  final List<dynamic> meals;
+  final List<Meal> meals;
 
   const _MealsTab({required this.meals});
 
