@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 
-import '../models/meal_plan_model.dart';
+import '../models/meal_model.dart';
 
-/// Displays one day's worth of meals as an expandable card.
+/// Displays a meal as an expandable card showing ingredients.
 class MealCardWidget extends StatelessWidget {
-  final DayPlan dayPlan;
+  final Meal meal;
+  final VoidCallback? onRemove;
 
-  const MealCardWidget({super.key, required this.dayPlan});
+  const MealCardWidget({super.key, required this.meal, this.onRemove});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Day header
+          // Header bar
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -25,78 +28,66 @@ class MealCardWidget extends StatelessWidget {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(12)),
             ),
-            child: Text(
-              dayPlan.day,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ),
-          // Meal rows
-          _MealRow(label: 'Breakfast', meal: dayPlan.breakfast, icon: Icons.wb_sunny_outlined),
-          _MealRow(label: 'Lunch', meal: dayPlan.lunch, icon: Icons.lunch_dining_outlined),
-          _MealRow(label: 'Dinner', meal: dayPlan.dinner, icon: Icons.dinner_dining_outlined),
-          _MealRow(label: 'Snack', meal: dayPlan.snack, icon: Icons.apple_outlined),
-          const SizedBox(height: 4),
-        ],
-      ),
-    );
-  }
-}
-
-class _MealRow extends StatelessWidget {
-  final String label;
-  final MealEntry meal;
-  final IconData icon;
-
-  const _MealRow({
-    required this.label,
-    required this.meal,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return ExpansionTile(
-      leading: Icon(icon, size: 20),
-      title: Text(
-        meal.name.isEmpty ? label : meal.name,
-        style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: meal.calories > 0
-          ? Text(
-              '${meal.calories} kcal · ${meal.prepMinutes} min',
-              style: textTheme.bodySmall,
-            )
-          : null,
-      childrenPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      children: meal.ingredients.isEmpty
-          ? [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text('No ingredients listed.',
-                    style: textTheme.bodySmall),
-              ),
-            ]
-          : meal.ingredients
-              .map(
-                (ingredient) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.circle, size: 6),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(ingredient, style: textTheme.bodySmall),
-                      ),
-                    ],
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    meal.name,
+                    style: textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              )
-              .toList(),
+                if (onRemove != null)
+                  IconButton(
+                    icon: Icon(Icons.remove_circle_outline,
+                        color: colorScheme.onPrimaryContainer),
+                    iconSize: 20,
+                    tooltip: 'Remove',
+                    onPressed: onRemove,
+                  ),
+              ],
+            ),
+          ),
+          // Expand to show ingredients
+          ExpansionTile(
+            leading: const Icon(Icons.restaurant_outlined, size: 20),
+            title: Text(
+              '${meal.calories} kcal · ${meal.prepMinutes} min',
+              style: textTheme.bodySmall,
+            ),
+            childrenPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            children: meal.ingredients.isEmpty
+                ? [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('No ingredients listed.',
+                          style: textTheme.bodySmall),
+                    ),
+                  ]
+                : [
+                    ...meal.ingredients.map(
+                      (ingredient) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.circle, size: 6),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(ingredient,
+                                  style: textTheme.bodySmall),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+          ),
+        ],
+      ),
     );
   }
 }
