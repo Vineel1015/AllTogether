@@ -49,6 +49,13 @@ class AnalyticsService {
     for (final receipt in recentReceipts) {
       final dateKey = _dateKey(receipt.scannedAt);
 
+      // Add the overall receipt total to the cost for that day
+      if (receipt.totalAmount != null) {
+        dailyMap
+            .putIfAbsent(dateKey, () => _DayAccumulator(receipt.scannedAt))
+            .add(0, 0, 0, 0, 0, receipt.totalAmount!);
+      }
+
       for (final item in receipt.items) {
         final foodItem = await _lookupFoodItem(item.name);
         final servings = item.quantity; // each unit ≈ 1 serving (100 g)
