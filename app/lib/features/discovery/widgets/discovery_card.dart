@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../finder/models/meal_model.dart';
+import '../../../core/constants/brand_colors.dart';
 
 class DiscoveryCard extends StatefulWidget {
   final Meal meal;
@@ -24,58 +25,76 @@ class _DiscoveryCardState extends State<DiscoveryCard> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        setState(() {
-          _swipePosition += details.delta.dx;
-        });
-      },
-      onHorizontalDragEnd: (details) {
-        if (_swipePosition > 100) {
-          widget.onSwipeRight();
-        } else if (_swipePosition < -100) {
-          widget.onSwipeLeft();
-        }
-        setState(() {
-          _swipePosition = 0;
-        });
-      },
-      onTap: () {
-        setState(() {
-          _viewMode = (_viewMode + 1) % 3;
-        });
-      },
-      child: Transform.translate(
-        offset: Offset(_swipePosition, 0),
-        child: Transform.rotate(
-          angle: _swipePosition / 1000,
-          child: Container(
-            width: 320,
-            height: 480,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: _buildContent(),
-                  ),
-                  _buildBottomBar(),
-                ],
-              ),
-            ),
+    return Draggable<Meal>(
+      data: widget.meal,
+      feedback: Opacity(
+        opacity: 0.8,
+        child: Material(
+          color: Colors.transparent,
+          child: _buildCardContent(),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _buildCardContent(),
+      ),
+      child: GestureDetector(
+        onHorizontalDragUpdate: (details) {
+          setState(() {
+            _swipePosition += details.delta.dx;
+          });
+        },
+        onHorizontalDragEnd: (details) {
+          if (_swipePosition > 100) {
+            widget.onSwipeRight();
+          } else if (_swipePosition < -100) {
+            widget.onSwipeLeft();
+          }
+          setState(() {
+            _swipePosition = 0;
+          });
+        },
+        onTap: () {
+          setState(() {
+            _viewMode = (_viewMode + 1) % 3;
+          });
+        },
+        child: Transform.translate(
+          offset: Offset(_swipePosition, 0),
+          child: Transform.rotate(
+            angle: _swipePosition / 1000,
+            child: _buildCardContent(),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardContent() {
+    return Container(
+      width: 320,
+      height: 480,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          children: [
+            Expanded(
+              child: _buildContent(),
+            ),
+            _buildBottomBar(),
+          ],
         ),
       ),
     );
@@ -93,17 +112,18 @@ class _DiscoveryCardState extends State<DiscoveryCard> {
   }
 
   Widget _buildMainView() {
+    final color = AllTogetherColors.getMealColor(widget.meal.id);
     return Stack(
       children: [
-        // Meal Image Placeholder
+        // Meal Image Placeholder with Category Color
         Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0xFF4C0089), Color(0xFFB0CE6F)],
+              colors: [color, color.withOpacity(0.7)],
             ),
           ),
           child: const Center(
@@ -240,16 +260,16 @@ class _DiscoveryCardState extends State<DiscoveryCard> {
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       color: Colors.white,
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'SWIPE LEFT TO SKIP',
             style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 10),
           ),
-          const Text(
+          Text(
             'SWIPE RIGHT TO SAVE',
-            style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 10),
+            style: TextStyle(color: AllTogetherColors.mascotBlue, fontWeight: FontWeight.bold, fontSize: 10),
           ),
         ],
       ),
