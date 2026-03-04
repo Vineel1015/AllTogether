@@ -50,9 +50,17 @@ class MyMealsScreen extends ConsumerWidget {
   }
 }
 
-class _SavedPlanCard extends StatelessWidget {
+class _SavedPlanCard extends StatefulWidget {
   final SavedPlan plan;
   const _SavedPlanCard({required this.plan});
+
+  @override
+  State<_SavedPlanCard> createState() => _SavedPlanCardState();
+}
+
+class _SavedPlanCardState extends State<_SavedPlanCard> {
+  bool _isExpanded = false;
+  final Set<String> _checkedItems = {};
 
   @override
   Widget build(BuildContext context) {
@@ -65,57 +73,95 @@ class _SavedPlanCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AllTogetherColors.mascotBlue.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Week of ${_formatDate(plan.weekStartDate)}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (plan.actualTotalCost != null)
-                  Text(
-                    '\$${plan.actualTotalCost!.toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AllTogetherColors.mascotBlue.withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Week of ${_formatDate(widget.plan.weekStartDate)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${widget.plan.shoppingList.length} Items',
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
                   ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Shopping List', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: plan.shoppingList.take(4).map((item) => Chip(
-                    label: Text(item, style: const TextStyle(fontSize: 10)),
-                    backgroundColor: Colors.white,
-                    side: BorderSide(color: Colors.grey[200]!),
-                    visualDensity: VisualDensity.compact,
-                  )).toList(),
-                ),
-                if (plan.shoppingList.length > 4)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('+ ${plan.shoppingList.length - 4} more items', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  Row(
+                    children: [
+                      if (widget.plan.actualTotalCost != null)
+                        Text(
+                          '\$${widget.plan.actualTotalCost!.toStringAsFixed(2)}',
+                          style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                        ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: Colors.grey,
+                      ),
+                    ],
                   ),
-              ],
+                ],
+              ),
             ),
           ),
-          const Divider(height: 1),
-          TextButton(
-            onPressed: () {},
-            child: const Center(child: Text('Re-deal this Deck')),
-          ),
+          if (!_isExpanded)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: widget.plan.shoppingList.take(4).map((item) => Chip(
+                  label: Text(item, style: const TextStyle(fontSize: 10)),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey[200]!),
+                  visualDensity: VisualDensity.compact,
+                )).toList(),
+              ),
+            ),
+          if (_isExpanded)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Column(
+                children: widget.plan.shoppingList.map((item) {
+                  final isChecked = _checkedItems.contains(item);
+                  return CheckboxListTile(
+                    value: isChecked,
+                    title: Text(
+                      item,
+                      style: TextStyle(
+                        decoration: isChecked ? TextDecoration.lineThrough : null,
+                        color: isChecked ? Colors.grey : null,
+                        fontSize: 14,
+                      ),
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        if (val == true) {
+                          _checkedItems.add(item);
+                        } else {
+                          _checkedItems.remove(item);
+                        }
+                      });
+                    },
+                    controlAffinity: ListTileControlAffinity.leading,
+                    dense: true,
+                    activeColor: AllTogetherColors.mascotBlue,
+                  );
+                }).toList(),
+              ),
+            ),
         ],
       ),
     );
