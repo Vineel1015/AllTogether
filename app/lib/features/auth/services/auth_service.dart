@@ -103,9 +103,8 @@ class AuthService {
 
   Future<AppResult<void>> signInWithGoogle() async {
     try {
-      // On web, redirect back to whatever URL the app is currently served from
-      // (works for both localhost dev and GitHub Pages production).
-      // On mobile, use the custom deep-link scheme registered in the OS.
+      // On web, redirect back to whatever URL the app is currently served from.
+      // On mobile, use the custom deep-link scheme registered in Info.plist.
       final redirectTo = kIsWeb
           ? Uri.base.toString()
           : 'io.supabase.alltogether://login-callback';

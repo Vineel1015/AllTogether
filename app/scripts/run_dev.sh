@@ -69,7 +69,17 @@ echo ""
 
 cd "$REPO_ROOT/app"
 
-flutter run \
-  --dart-define=SUPABASE_URL="$SUPABASE_URL" \
-  --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-  "$@"
+# If an argument is provided, use it as the device ID
+if [ -n "$1" ]; then
+  echo "  Running on device: $1"
+  flutter run -d "$1" \
+    --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+    --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+    "${@:2}"
+else
+  echo "  No device specified, using default..."
+  flutter run \
+    --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+    --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+    "$@"
+fi
