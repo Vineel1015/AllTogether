@@ -7,11 +7,97 @@ import '../providers/social_provider.dart';
 import '../models/post_model.dart';
 import '../widgets/social_post_card.dart';
 
-class SocialFeedScreen extends ConsumerWidget {
+class SocialFeedScreen extends ConsumerStatefulWidget {
   const SocialFeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SocialFeedScreen> createState() => _SocialFeedScreenState();
+}
+
+class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
+  void _showCreatePostDialog() {
+    final textController = TextEditingController();
+    bool isValid = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Create New Post', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: textController,
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  hintText: 'Share your healthy meal thoughts... (min 10 chars)',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (val) {
+                  setModalState(() => isValid = val.trim().length >= 10);
+                },
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.image_outlined, color: Colors.green),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Image upload coming soon!')),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.videocam_outlined, color: Colors.blue),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Video upload coming soon!')),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: isValid ? () async {
+                  final user = ref.read(authServiceProvider).currentUser;
+                  if (user != null) {
+                    final post = Post(
+                      id: '',
+                      userId: user.id,
+                      username: user.userMetadata?['name'] ?? 'User',
+                      userAvatarUrl: '',
+                      content: textController.text.trim(),
+                      createdAt: DateTime.now(),
+                    );
+                    await ref.read(socialFeedProvider.notifier).sharePost(post);
+                    if (mounted) Navigator.pop(ctx);
+                  }
+                } : null,
+                child: const Text('Post to Potluck'),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final feedAsync = ref.watch(socialFeedProvider);
 
     return DefaultTabController(
@@ -31,13 +117,11 @@ class SocialFeedScreen extends ConsumerWidget {
         body: TabBarView(
           children: [
             _buildFeedView(ref, feedAsync),
-            _buildFeedView(ref, feedAsync), // Currently showing same feed for both
+            _buildFeedView(ref, feedAsync),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            // Implementation for creating a new post
-          },
+          onPressed: _showCreatePostDialog,
           backgroundColor: Colors.green,
           child: const Icon(Icons.add, color: Colors.white),
         ),

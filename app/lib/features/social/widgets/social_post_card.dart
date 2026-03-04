@@ -44,7 +44,7 @@ class SocialPostCard extends StatelessWidget {
                 if (post.calories != null || post.sustainabilityScore != null)
                   _buildMealStats(),
                 const SizedBox(height: 12),
-                _buildSocialActions(),
+                _buildSocialActions(methodContext),
               ],
             ),
           ),
@@ -86,11 +86,15 @@ class SocialPostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialActions() {
+  Widget _buildSocialActions(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildActionItem(Icons.chat_bubble_outline, post.commentCount.toString()),
+        _buildActionItem(
+          Icons.chat_bubble_outline, 
+          post.commentCount.toString(),
+          onTap: () => _showCommentDialog(context),
+        ),
         _buildActionItem(Icons.repeat, post.shareCount.toString()),
         _buildActionItem(post.isLiked ? Icons.favorite : Icons.favorite_border, post.likeCount.toString(), color: post.isLiked ? Colors.pink : null),
         _buildActionItem(Icons.bookmark_border, ''),
@@ -99,18 +103,70 @@ class SocialPostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String count, {Color? color}) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: color ?? Colors.grey[600]),
-        if (count.isNotEmpty) ...[
-          const SizedBox(width: 4),
-          Text(
-            count,
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
+  void _showCommentDialog(BuildContext context) {
+    final commentController = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Add a comment', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: commentController,
+              decoration: const InputDecoration(
+                hintText: 'Type your comment...',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                FilledButton(
+                  onPressed: () {
+                    // Logic to save comment would go here
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Comment posted!')),
+                    );
+                  },
+                  child: const Text('Reply'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionItem(IconData icon, String count, {Color? color, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color ?? Colors.grey[600]),
+          if (count.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            Text(
+              count,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 

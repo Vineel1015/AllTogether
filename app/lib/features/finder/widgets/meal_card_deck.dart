@@ -22,7 +22,7 @@ class MealCardDeck extends StatefulWidget {
 class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMixin {
   final List<Meal> _selectedMeals = [];
   final Set<String> _dealtMealIds = {};
-  double _scrollOffset = 0.0;
+  double _rotationOffset = 0.0;
   String? _hoveredMealId;
 
   void _selectMeal(Meal meal) {
@@ -70,34 +70,34 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
 
         const Spacer(),
         
-        // Magician Radial Fan Deck
+        // Roulette Wheel Radial Fan Deck
         GestureDetector(
           onHorizontalDragUpdate: (details) {
             setState(() {
-              _scrollOffset -= details.delta.dx / 200; // Sensibility
+              // Map drag distance to rotation angle
+              _rotationOffset += details.delta.dx / 300; 
             });
           },
           child: Container(
             height: 550,
             width: double.infinity,
-            color: Colors.transparent, // Capture gestures
+            color: Colors.transparent,
             child: Stack(
               alignment: Alignment.bottomCenter,
-              clipBehavior: Clip.none,
               children: List.generate(availableMeals.length, (index) {
                 final meal = availableMeals[index];
                 final total = availableMeals.length;
                 
-                // Calculate spread position with scroll offset
-                final double centerIndex = (total - 1) / 2;
-                final double relativePos = (index - centerIndex) + _scrollOffset;
+                // Position in the wheel
+                final double baseAngle = (index - (total - 1) / 2) * (pi / 10);
+                final double angle = baseAngle + _rotationOffset;
                 
-                // Arc calculations
-                final double arcSpread = pi / 4; // 45 degree spread
-                final double angle = relativePos * (arcSpread / 3);
-                final double radius = 600.0;
+                // Only show cards within a certain viewable range (fan)
+                if (angle < -pi / 2 || angle > pi / 2) return const SizedBox.shrink();
+
+                final double radius = 500.0;
                 
-                return _RadialFanCard(
+                return _RadialRouletteCard(
                   key: ValueKey(meal.id),
                   meal: meal,
                   angle: angle,
@@ -132,7 +132,7 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
   }
 }
 
-class _RadialFanCard extends StatelessWidget {
+class _RadialRouletteCard extends StatelessWidget {
   final Meal meal;
   final double angle;
   final double radius;
@@ -140,7 +140,7 @@ class _RadialFanCard extends StatelessWidget {
   final Function(bool) onHover;
   final VoidCallback onSelected;
 
-  const _RadialFanCard({
+  const _RadialRouletteCard({
     super.key,
     required this.meal,
     required this.angle,
@@ -152,13 +152,12 @@ class _RadialFanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Pivot from bottom center to create radial fan
+    // Pivot from bottom center to create radial fan stemming from the bottom
     final double x = sin(angle) * radius;
-    final double y = -cos(angle) * radius + radius;
+    final double y = -cos(angle) * radius + radius - 100; // -100 to push pivot below screen
 
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 100), // Fast response for drag
       bottom: isHovered ? y + 80 : y,
       left: (MediaQuery.of(context).size.width / 2) + x - 140,
       child: Transform.rotate(
@@ -227,7 +226,7 @@ class _LargeFlipCardState extends State<_LargeFlipCard> with SingleTickerProvide
           child: _CardSide(meal: widget.meal, isFaceUp: true, isLarge: true),
         ),
         onDragEnd: (details) {
-          if (details.offset.dy < 250) {
+          if (details.offset.dy < 300) {
             widget.onSelected();
           }
         },

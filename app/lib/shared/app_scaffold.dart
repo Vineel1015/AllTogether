@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/analytics/screens/analytics_screen.dart';
 import '../features/finder/screens/finder_screen.dart';
 import '../features/social/screens/social_feed_screen.dart';
-import '../features/discovery/screens/discovery_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/finder/providers/finder_tab_provider.dart';
 import '../features/history/screens/history_screen.dart';
@@ -318,128 +317,11 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderSt
   }
 }
 
-class PotluckScreen extends ConsumerStatefulWidget {
+class PotluckScreen extends StatelessWidget {
   const PotluckScreen({super.key});
   @override
-  ConsumerState<PotluckScreen> createState() => _PotluckScreenState();
-}
-
-class _PotluckScreenState extends ConsumerState<PotluckScreen> {
-  bool _isDraggingOverSocial = false;
-
-  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            child: const TabBar(
-              indicatorColor: Colors.green,
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.grey,
-              tabs: [
-                Tab(text: 'Discovery'),
-                Tab(text: 'Social Feed'),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Stack(
-              children: [
-                const TabBarView(
-                  physics: NeverScrollableScrollPhysics(), // Prevent conflict with drag
-                  children: [
-                    DiscoveryScreen(),
-                    SocialFeedScreen(),
-                  ],
-                ),
-                // Drag Target Overlay for Social Feed
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: 100, // Detect drag near the edge
-                  child: DragTarget<Meal>(
-                    onWillAccept: (data) {
-                      setState(() => _isDraggingOverSocial = true);
-                      DefaultTabController.of(context).animateTo(1); // Switch to social feed
-                      return true;
-                    },
-                    onLeave: (data) => setState(() => _isDraggingOverSocial = false),
-                    onAccept: (meal) {
-                      setState(() => _isDraggingOverSocial = false);
-                      _showShareDialog(context, meal);
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        color: _isDraggingOverSocial 
-                            ? Colors.green.withOpacity(0.2) 
-                            : Colors.transparent,
-                        child: _isDraggingOverSocial 
-                            ? const Center(child: Icon(Icons.share, size: 40, color: Colors.green))
-                            : const SizedBox.shrink(),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showShareDialog(BuildContext context, Meal meal) {
-    final commentController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Share ${meal.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Add a comment to your post:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: commentController,
-              decoration: const InputDecoration(
-                hintText: 'What do you think of this meal?',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () async {
-              final user = ref.read(authServiceProvider).currentUser;
-              if (user != null) {
-                final post = Post(
-                  id: '',
-                  userId: user.id,
-                  username: user.userMetadata?['name'] ?? 'User',
-                  userAvatarUrl: '',
-                  content: '${commentController.text}\n\nCheck out this meal: ${meal.name}! 🥗',
-                  createdAt: DateTime.now(),
-                  calories: meal.calories.toDouble(),
-                  sustainabilityScore: 9.0,
-                  tags: ['potluck', 'discovery'],
-                );
-                await ref.read(socialFeedProvider.notifier).sharePost(post);
-                if (mounted) Navigator.pop(ctx);
-              }
-            },
-            child: const Text('Post'),
-          ),
-        ],
-      ),
-    );
+    return const SocialFeedScreen();
   }
 }
 
