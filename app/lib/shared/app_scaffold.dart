@@ -171,12 +171,14 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderSt
     final icon = switch (tab) {
       AppTab.potluck => Icons.groups_outlined,
       AppTab.whatsCookin => Icons.restaurant_menu_outlined,
+      AppTab.myMeals => Icons.library_books_outlined,
       AppTab.kaleculations => Icons.analytics_outlined,
       AppTab.settings => Icons.settings_outlined,
     };
     final selectedIcon = switch (tab) {
       AppTab.potluck => Icons.groups,
       AppTab.whatsCookin => Icons.restaurant_menu,
+      AppTab.myMeals => Icons.library_books,
       AppTab.kaleculations => Icons.analytics,
       AppTab.settings => Icons.settings,
     };
@@ -184,6 +186,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderSt
     final label = switch (tab) {
       AppTab.potluck => 'Potluck',
       AppTab.whatsCookin => "What's Cookin?",
+      AppTab.myMeals => 'My Meals',
       AppTab.kaleculations => 'Kale-culations',
       AppTab.settings => 'Settings',
     };
