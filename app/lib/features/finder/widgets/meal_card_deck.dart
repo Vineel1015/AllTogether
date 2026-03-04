@@ -83,7 +83,7 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
             width: double.infinity,
             color: Colors.transparent,
             child: Stack(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.topCenter, // Pivot from the top
               children: List.generate(availableMeals.length, (index) {
                 final meal = availableMeals[index];
                 final total = availableMeals.length;
@@ -152,16 +152,16 @@ class _RadialRouletteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Pivot from bottom center to create radial fan stemming from the bottom
+    // Pivot from top center to create radial fan stemming from the top
     final double x = sin(angle) * radius;
-    final double y = -cos(angle) * radius + radius - 100; // -100 to push pivot below screen
+    final double y = cos(angle) * radius - radius + 100; // Stem from the top
 
     return AnimatedPositioned(
-      duration: const Duration(milliseconds: 100), // Fast response for drag
-      bottom: isHovered ? y + 80 : y,
+      duration: const Duration(milliseconds: 100),
+      top: isHovered ? y + 80 : y,
       left: (MediaQuery.of(context).size.width / 2) + x - 140,
       child: Transform.rotate(
-        angle: angle,
+        angle: -angle, // Invert angle for downward fan
         child: MouseRegion(
           onEnter: (_) => onHover(true),
           onExit: (_) => onHover(false),
@@ -226,7 +226,8 @@ class _LargeFlipCardState extends State<_LargeFlipCard> with SingleTickerProvide
           child: _CardSide(meal: widget.meal, isFaceUp: true, isLarge: true),
         ),
         onDragEnd: (details) {
-          if (details.offset.dy < 300) {
+          // Select if dragged DOWN past a threshold (since fan stems from top)
+          if (details.offset.dy > MediaQuery.of(context).size.height * 0.6) {
             widget.onSelected();
           }
         },
