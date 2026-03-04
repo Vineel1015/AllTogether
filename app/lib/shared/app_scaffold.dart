@@ -12,10 +12,11 @@ import '../features/finder/models/meal_model.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/social/models/post_model.dart';
 import '../features/social/providers/social_provider.dart';
+import '../features/finder/screens/my_meals_screen.dart';
 import 'mascot_widget.dart';
 
 /// Tab indices used by [AppScaffold].
-enum AppTab { potluck, whatsCookin, kaleculations, settings }
+enum AppTab { potluck, whatsCookin, myMeals, kaleculations, settings }
 
 /// Main app shell shown to authenticated users who have completed onboarding.
 ///
@@ -239,11 +240,8 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderSt
             _buildSidebarItem(
               Icons.restaurant_outlined,
               'My Meals',
-              onTap: () {
-                ref.read(finderTabProvider.notifier).state = 0;
-                setState(() => _currentTab = AppTab.whatsCookin);
-              },
-              isSelected: _currentTab == AppTab.whatsCookin && currentFinderTab == 0,
+              onTap: () => setState(() => _currentTab = AppTab.myMeals),
+              isSelected: _currentTab == AppTab.myMeals,
             ),
             _buildSidebarItem(
               Icons.eco_outlined,
@@ -310,6 +308,7 @@ class _AppScaffoldState extends ConsumerState<AppScaffold> with TickerProviderSt
     return switch (_currentTab) {
       AppTab.potluck => const PotluckScreen(),
       AppTab.whatsCookin => const WhatsCookinScreen(),
+      AppTab.myMeals => const MyMealsScreen(),
       AppTab.kaleculations => const KaleculationsScreen(),
       AppTab.settings => const SettingsScreen(),
     };
