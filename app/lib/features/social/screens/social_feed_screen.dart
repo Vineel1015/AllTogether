@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/social_provider.dart';
 import '../models/post_model.dart';
 import '../widgets/social_post_card.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class SocialFeedScreen extends ConsumerStatefulWidget {
   const SocialFeedScreen({super.key});
