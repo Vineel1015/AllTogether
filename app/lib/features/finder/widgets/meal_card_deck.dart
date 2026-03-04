@@ -22,8 +22,8 @@ class MealCardDeck extends StatefulWidget {
 class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMixin {
   final List<Meal> _selectedMeals = [];
   final Set<String> _dealtMealIds = {};
-  final PageController _pageController = PageController(viewportFraction: 0.7);
-  int _currentPage = 0;
+  double _scrollOffset = 0.0;
+  String? _hoveredMealId;
 
   void _selectMeal(Meal meal) {
     if (_selectedMeals.length < widget.maxSelections && !_dealtMealIds.contains(meal.id)) {
@@ -70,30 +70,49 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
 
         const Spacer(),
         
-        // Large Horizontal Deck
-        SizedBox(
-          height: 550, // Much larger area
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: availableMeals.length,
-            onPageChanged: (i) => setState(() => _currentPage = i),
-            itemBuilder: (context, index) {
-              final meal = availableMeals[index];
-              final double scale = max(0.8, (1 - (_currentPage - index).abs() * 0.3));
-              
-              return Center(
-                child: Transform.scale(
-                  scale: scale,
-                  child: _LargeFlipCard(
-                    meal: meal,
-                    onSelected: () => _selectMeal(meal),
-                  ),
-                ),
-              );
-            },
+        // Magician Radial Fan Deck
+        GestureDetector(
+          onHorizontalDragUpdate: (details) {
+            setState(() {
+              _scrollOffset -= details.delta.dx / 200; // Sensibility
+            });
+          },
+          child: Container(
+            height: 550,
+            width: double.infinity,
+            color: Colors.transparent, // Capture gestures
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              clipBehavior: Clip.none,
+              children: List.generate(availableMeals.length, (index) {
+                final meal = availableMeals[index];
+                final total = availableMeals.length;
+                
+                // Calculate spread position with scroll offset
+                final double centerIndex = (total - 1) / 2;
+                final double relativePos = (index - centerIndex) + _scrollOffset;
+                
+                // Arc calculations
+                final double arcSpread = pi / 4; // 45 degree spread
+                final double angle = relativePos * (arcSpread / 3);
+                final double radius = 600.0;
+                
+                return _RadialFanCard(
+                  key: ValueKey(meal.id),
+                  meal: meal,
+                  angle: angle,
+                  radius: radius,
+                  isHovered: _hoveredMealId == meal.id,
+                  onHover: (h) => setState(() => _hoveredMealId = h ? meal.id : null),
+                  onSelected: () => _selectMeal(meal),
+                );
+              }),
+            ),
           ),
         ),
         
+        const SizedBox(height: 20),
+
         if (_selectedMeals.length == widget.maxSelections)
           Padding(
             padding: const EdgeInsets.only(bottom: 40.0),
@@ -109,6 +128,50 @@ class _MealCardDeckState extends State<MealCardDeck> with TickerProviderStateMix
             ),
           ),
       ],
+    );
+  }
+}
+
+class _RadialFanCard extends StatelessWidget {
+  final Meal meal;
+  final double angle;
+  final double radius;
+  final bool isHovered;
+  final Function(bool) onHover;
+  final VoidCallback onSelected;
+
+  const _RadialFanCard({
+    super.key,
+    required this.meal,
+    required this.angle,
+    required this.radius,
+    required this.isHovered,
+    required this.onHover,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Pivot from bottom center to create radial fan
+    final double x = sin(angle) * radius;
+    final double y = -cos(angle) * radius + radius;
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      bottom: isHovered ? y + 80 : y,
+      left: (MediaQuery.of(context).size.width / 2) + x - 140,
+      child: Transform.rotate(
+        angle: angle,
+        child: MouseRegion(
+          onEnter: (_) => onHover(true),
+          onExit: (_) => onHover(false),
+          child: _LargeFlipCard(
+            meal: meal,
+            onSelected: onSelected,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -164,7 +227,7 @@ class _LargeFlipCardState extends State<_LargeFlipCard> with SingleTickerProvide
           child: _CardSide(meal: widget.meal, isFaceUp: true, isLarge: true),
         ),
         onDragEnd: (details) {
-          if (details.offset.dy < 200) {
+          if (details.offset.dy < 250) {
             widget.onSelected();
           }
         },
@@ -239,7 +302,7 @@ class _CardSide extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text('${meal.calories} kcal', style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
-                const Text('SWIPE UP TO DEAL', style: TextStyle(color: Colors.grey, fontSize: 12, letterSpacing: 2)),
+                const Text('DRAG UP TO DEAL', style: TextStyle(color: Colors.grey, fontSize: 12, letterSpacing: 2)),
               ],
             ],
           )
@@ -314,14 +377,5 @@ class _EmptySlot extends StatelessWidget {
       ),
       child: const Center(child: Icon(Icons.add, color: Colors.grey, size: 24)),
     );
-  }
-}
-
-extension ColorExtension on Color {
-  Color darken([double amount = .1]) {
-    assert(amount >= 0 && amount <= 1);
-    final hsl = HSLColor.fromColor(this);
-    final hslDark = hsl.withLightness((hsl.lightness - amount).clamp(0.0, 1.0));
-    return hslDark.toColor();
   }
 }
